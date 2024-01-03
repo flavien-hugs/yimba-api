@@ -1,0 +1,51 @@
+# IntelliJ project files
+.idea
+
+# Coverlet is a free, cross platform Code Coverage Tool
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# Visual Studio code coverage results
+*.coverage
+*.coveragexml
+
+# Python Tools for Visual Studio (PTVS)
+__pycache__/
+*.pyc
+
+# VS Code files for those working on multiple tools
+.vscode
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# poetry
+poetry.lock
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+dotenv
+
+# Cython debug symbols
+cython_debug/
+
+# PyCharm
+.idea/
+deploy

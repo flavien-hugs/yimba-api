@@ -1,0 +1,45 @@
+version: "3.9"
+
+services:
+    api.auth.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run auth
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/auth/:/app/yimba_api/services/auth
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8090:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
+    mongo:
+        image: mongo:jammy
+        restart: unless-stopped
+        ports:
+          - "27020:27017"
+        volumes:
+            - mongo_data:/data/db
+        env_file:
+            - ./dotenv/mongo.env
+
+    redis:
+        image: redis:alpine
+        restart: unless-stopped
+        command: redis-server --loglevel ${REDIS_LOG_LEVEL} --requirepass ${REDIS_PASSWORD}
+        volumes:
+            - redis_data:/data
+        env_file:
+            - ./dotenv/redis.env
+
+volumes:
+    redis_data: {}
+    mongo_data: {}
+    minio_storage: {}

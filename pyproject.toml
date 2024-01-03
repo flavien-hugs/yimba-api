@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "yimba-api"
+version = "0.1.0"
+description = ""
+authors = ["haf <haf@incubtek.com>"]
+packages = [{include = "yimba_api"}]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+motor = "^3.3.2"
+python-dotenv = "^1.0.0"
+typer = {extras = ["all"], version = "^0.9.0"}
+httpx = "^0.26.0"
+fastapi = {version = "^0.97.0", extras = ["all"]}
+fastapi-pagination = "^0.12.14"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+
+
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^3.6.0"
+isort = "^5.13.2"
+black = "^23.12.1"
+flake8 = "^6.1.0"
+
+[tool.black]
+line-length = 100
+include = '\.pyi?$'
+exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | \.docker
+    | \*.egg-info
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+)
+'''
+
+[tool.poetry.scripts]
+yimba = "yimba_api.cli:app"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
