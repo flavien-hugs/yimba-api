@@ -1,5 +1,5 @@
 # yimba-api
-> Social engenering scrapping data
+> Yimba est une plateforme d'analyse des émotions et opinions en ligne, conçue pour collecter, analyser et surveiller les commentaires provenant de diverses sources, y compris les médias sociaux.
 
 ## Prérequis
 
