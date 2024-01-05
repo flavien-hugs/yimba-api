@@ -20,6 +20,63 @@ services:
         env_file:
             - ./dotenv/dev.env
 
+    api.project.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run project
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/project/:/app/yimba_api/services/project
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8091:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
+    api.facebook.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run facebook
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/facebook/:/app/yimba_api/services/facebook
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8092:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
+    api.params.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run params
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/params/:/app/yimba_api/services/params
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8099:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
     mongo:
         image: mongo:jammy
         restart: unless-stopped

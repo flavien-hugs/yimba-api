@@ -12,6 +12,8 @@ logger = get_logger("ServiceFetch")
 
 class ServiceBaseUrl(YimbaBaseSettings):
     auth: HttpUrl = Field(..., env="AUTH_BASE_URL")
+    project: HttpUrl = Field(..., env="PROJECT_BASE_URL")
+    facebook: HttpUrl = Field(..., env="FACEBOOK_BASE_URL")
 
 
 baseUrl = ServiceBaseUrl()
@@ -48,7 +50,8 @@ class ServiceFetch(ApiClient):
 
 
 auth = ServiceFetch(str(baseUrl.auth), "auth")
-
+project = ServiceFetch(str(baseUrl.project), "project")
+faceook = ServiceFetch(str(baseUrl.facebook), "facebook")
 
 if __name__ == "__main__":
     import asyncio

@@ -8,10 +8,10 @@ from fastapi_pagination import add_pagination
 
 from yimba_api.config import service as service_config
 from yimba_api.services import FastYimbaAPI
-from yimba_api.services.auth import api
+from yimba_api.services.facebook import api
 
 
-SETTINGS: service_config.Auth = service_config.get("auth")
+SETTINGS: service_config.Facebook = service_config.get("facebook")
 
 
 app: FastAPI = FastYimbaAPI(
@@ -53,18 +53,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=jsonable_encoder({"message": errors}),
-    )
-
-
-@app.on_event("startup")
-async def apply_indexes():
-    from .model import UserInDB
-
-    await api.router.storage.db[UserInDB.__name__].create_index(
-        ["email"],
-        unique=True,
-        background=True,
-        name="unique_email",
     )
 
 

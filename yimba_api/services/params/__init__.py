@@ -8,15 +8,17 @@ from fastapi_pagination import add_pagination
 
 from yimba_api.config import service as service_config
 from yimba_api.services import FastYimbaAPI
-from yimba_api.services.auth import api
+from yimba_api.services.params import api
 
-
-SETTINGS: service_config.Auth = service_config.get("auth")
+SETTINGS: service_config.Params = service_config.get("params")
 
 
 app: FastAPI = FastYimbaAPI(
-    title=SETTINGS.title, docs_url=SETTINGS.docs_url, openapi_url=SETTINGS.openapi_url
+    title=SETTINGS.title,
+    docs_url=SETTINGS.docs_url,
+    openapi_url=SETTINGS.openapi_url,
 )
+
 add_pagination(app)
 app.include_router(api.router)
 
@@ -38,7 +40,7 @@ async def server_exception_handler(request: Request, exc: Exception):
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(request: Request, exc: RequestValidationError):
+async def validation_exception_handler(req: Request, exc: RequestValidationError):
     def _format_error(err):
         type_value = err.get("type", "").split(".", 1)[-1]
         message = f"Le champ: {err.get('loc', [])[1]} s'attend à une donnée de type '{type_value}'"
@@ -58,13 +60,13 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.on_event("startup")
 async def apply_indexes():
-    from .model import UserInDB
+    from .model import RoleInDB
 
-    await api.router.storage.db[UserInDB.__name__].create_index(
-        ["email"],
+    await api.router.storage.db[RoleInDB.__name__].create_index(
+        ["name"],
         unique=True,
         background=True,
-        name="unique_email",
+        name="unique_role",
     )
 
 

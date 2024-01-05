@@ -16,6 +16,9 @@ httpx = "^0.26.0"
 fastapi = {version = "^0.97.0", extras = ["all"]}
 fastapi-pagination = "^0.12.14"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+facebook-scraper = "^0.2.59"
+apify-client = "^1.6.1"
+python-slugify = "^8.0.1"
 
 
 [tool.poetry.group.dev.dependencies]
