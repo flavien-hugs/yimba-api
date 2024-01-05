@@ -7,14 +7,14 @@ from fastapi.exceptions import RequestValidationError
 from fastapi_pagination import add_pagination
 
 from yimba_api.config import service as service_config
-from yimba_api.services import FastIreleAPI
+from yimba_api.services import FastYimbaAPI
 from yimba_api.services.auth import api
 
 
 SETTINGS: service_config.Auth = service_config.get("auth")
 
 
-app: FastAPI = FastIreleAPI(
+app: FastAPI = FastYimbaAPI(
     title=SETTINGS.title, docs_url=SETTINGS.docs_url, openapi_url=SETTINGS.openapi_url
 )
 add_pagination(app)

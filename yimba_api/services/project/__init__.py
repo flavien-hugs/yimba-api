@@ -8,10 +8,10 @@ from fastapi_pagination import add_pagination
 
 from yimba_api.config import service as service_config
 from yimba_api.services import FastYimbaAPI
-from yimba_api.services.facebook import api
+from yimba_api.services.project import api
 
 
-SETTINGS: service_config.Facebook = service_config.get("facebook")
+SETTINGS: service_config.Project = service_config.get("project")
 
 
 app: FastAPI = FastYimbaAPI(

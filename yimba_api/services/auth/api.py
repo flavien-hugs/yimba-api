@@ -8,7 +8,7 @@ from fastapi_pagination import paginate
 from starlette import status
 
 from jose import JWTError
-from yimba_api.shared import crud
+from yimba_api.shared import crud, service
 from yimba_api.services.auth import model
 from yimba_api.services import router_factory
 from yimba_api.shared.authentication import (
@@ -16,7 +16,6 @@ from yimba_api.shared.authentication import (
     create_access_token,
     create_refresh_token,
     decode_refresh_token,
-    decode_access_token,
 )
 
 router = router_factory(
@@ -31,15 +30,20 @@ def ping():
     return {"message": "pong !"}
 
 
-@router.post("/users", response_model=dict, summary="Create a User")
+@router.post("/users", response_model=model.UserOutSchema, summary="Create a User")
+@router.post(
+    "/users/clients", response_model=model.UserOutSchema, summary="Create client User"
+)
 async def create_user(payload: model.SignupUser = Body(...)):
     try:
         hashed_password = model.UserInDB.hash_password(payload.password)
+        payload_role = await service.validate_roles_exist(payload.role)
         user = model.UserInDB(
+            role=payload_role,
             email=payload.email.lower(),
-            role=payload.role,
             password=hashed_password,
         )
+
         result = await user.save(router.storage)
         response = JSONResponse(
             status_code=status.HTTP_201_CREATED,
@@ -106,7 +110,7 @@ async def get_user(user_id: str):
 )
 async def update_user(
     user_id: str,
-    payload: model.User = Body(...),
+    payload: model.UpdateUser = Body(...),
     current_user: str = Security(AuthTokenBearer(allowed_role=["admin", "staff"])),
 ):
     result = await crud.patch(router.storage, model.UserInDB, user_id, payload)
@@ -176,15 +180,17 @@ async def login(payload: model.LoginUser = Body(...)):
             detail="Votre mot de passe est incorrecte",
         )
 
-    return model.UserLoginOutDB(**{
-        "access_token": create_access_token(
-            user=str(user.id), email=payload.email, role_or_type=str(user.role)
-        ),
-        "refresh_token": create_refresh_token(
-            user=str(user.id), email=payload.email, role_or_type=str(user.role)
-        ),
-        "user": user.dict(),
-    })
+    return model.UserLoginOutDB(
+        **{
+            "access_token": create_access_token(
+                user=str(user.id), email=payload.email, role_or_type=str(user.role)
+            ),
+            "refresh_token": create_refresh_token(
+                user=str(user.id), email=payload.email, role_or_type=str(user.role)
+            ),
+            "user": user.dict(),
+        }
+    )
 
 
 @router.post("/change-password", summary="Change user password and Send email")
@@ -205,9 +211,7 @@ async def change_password(payload: model.ChangePassword = Body(...)):
         await crud.patch(router.storage, model.UserInDB, user.id, user)
         response = JSONResponse(
             status_code=status.HTTP_201_CREATED,
-            content={
-                "message": f"Votre nouveau mot de passe est : {password}"
-            },
+            content={"message": f"Votre nouveau mot de passe est : {password}"},
         )
     except Exception as err:
         raise HTTPException(
@@ -222,7 +226,7 @@ async def change_password(payload: model.ChangePassword = Body(...)):
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "staff"]))],
     response_model=dict,
     summary="Logout User",
-    deprecated=True
+    deprecated=True,
 )
 async def logout(user: model.LogoutUser = Body(...)):
     return {"message": "Logout successful"}

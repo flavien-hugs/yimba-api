@@ -12,6 +12,10 @@ class User(BaseModel):
     fullname: Optional[str] = None
 
 
+class UpdateUser(BaseModel):
+    fullname: Optional[str] = None
+
+
 class SignupUser(User):
     email: EmailStr
     password: str

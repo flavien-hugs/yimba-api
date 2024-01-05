@@ -20,7 +20,7 @@ def router_factory(**kwargs) -> APIRouter:
     return router
 
 
-class FastIreleAPI(FastAPI):
+class FastYimbaAPI(FastAPI):
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.add_middleware(
