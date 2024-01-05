@@ -39,6 +39,7 @@ async def get_roles(slug: str = None):
 @router.post(
     "/roles",
     response_model=model.RoleInDB,
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin"]))],
     status_code=status.HTTP_201_CREATED,
     summary="Add new role",
 )
@@ -54,7 +55,7 @@ async def add_roles(data: model.Role = Body(...)):
         )
 
     ret = await model.RoleInDB(**data.dict()).save(router.storage)
-    return await crud.get(router.storage, model.RoleInDB, ret.inserted_id)
+    return await commun.get(router.storage, model.RoleInDB, ret.inserted_id)
 
 
 @router.patch(
@@ -64,7 +65,7 @@ async def add_roles(data: model.Role = Body(...)):
 )
 async def update_role(role_id: str, payload: model.Role = Body(...)):
     try:
-        obj = await crud.get(router.storage, model.RoleInDB, role_id)
+        obj = await commun.get(router.storage, model.RoleInDB, role_id)
         data = payload.dict(exclude_unset=True)
         for field, value in data.items():
             setattr(obj, field, value)
@@ -96,5 +97,5 @@ async def update_role(role_id: str, payload: model.Role = Body(...)):
     summary="Delete role",
 )
 async def delete_role(role_id: str):
-    result = await crud.delete(router.storage, model.RoleInDB, role_id)
+    result = await commun.delete(router.storage, model.RoleInDB, role_id)
     return result
