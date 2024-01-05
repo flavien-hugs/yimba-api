@@ -39,7 +39,6 @@ async def get_roles(slug: str = None):
 @router.post(
     "/roles",
     response_model=model.RoleInDB,
-    dependencies=[Security(AuthTokenBearer(allowed_role=["admin"]))],
     status_code=status.HTTP_201_CREATED,
     summary="Add new role",
 )
