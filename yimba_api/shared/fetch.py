@@ -12,8 +12,13 @@ logger = get_logger("ServiceFetch")
 
 class ServiceBaseUrl(YimbaBaseSettings):
     auth: HttpUrl = Field(..., env="AUTH_BASE_URL")
+    params: HttpUrl = Field(..., env="PARAMS_BASE_URL")
     project: HttpUrl = Field(..., env="PROJECT_BASE_URL")
+    tiktok: HttpUrl = Field(..., env="TIKTOK_BASE_URL")
+    google: HttpUrl = Field(..., env="GOOGLE_BASE_URL")
+    twitter: HttpUrl = Field(..., env="TWITTER_BASE_URL")
     facebook: HttpUrl = Field(..., env="FACEBOOK_BASE_URL")
+    instagram: HttpUrl = Field(..., env="INSTAGRAM_BASE_URL")
 
 
 baseUrl = ServiceBaseUrl()
@@ -50,8 +55,13 @@ class ServiceFetch(ApiClient):
 
 
 auth = ServiceFetch(str(baseUrl.auth), "auth")
+params = ServiceFetch(str(baseUrl.params), "params")
 project = ServiceFetch(str(baseUrl.project), "project")
+google = ServiceFetch(str(baseUrl.google), "google")
+tiktok = ServiceFetch(str(baseUrl.tiktok), "tiktok")
+twitter = ServiceFetch(str(baseUrl.twitter), "twitter")
 faceook = ServiceFetch(str(baseUrl.facebook), "facebook")
+instagram = ServiceFetch(str(baseUrl.instagram), "instagram")
 
 if __name__ == "__main__":
     import asyncio

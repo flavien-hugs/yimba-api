@@ -25,8 +25,6 @@ class Project(APIBaseSettings):
     port: int = Field(..., env="PROJECT_PORT")
     host: str = Field(..., env="PROJECT_HOST")
     url: HttpUrl = Field(..., env="PROJECT_BASE_URL")
-    apify_token: str = Field(..., env="APIFY_TOKEN")
-    apify_actor_id: str = Field(..., env="APIFY_ACTOR_ID")
     docs_url: str = "/api/project/docs"
     title: str = "Yimba API :: Project Service"
     openapi_url: str = "/api/project/openapi.json"
@@ -37,10 +35,54 @@ class Facebook(APIBaseSettings):
     host: str = Field(..., env="FACEBOOK_HOST")
     url: HttpUrl = Field(..., env="FACEBOOK_BASE_URL")
     apify_token: str = Field(..., env="APIFY_TOKEN")
-    apify_actor_id: str = Field(..., env="APIFY_ACTOR_ID")
+    apify_facebook_actor: str = Field(..., env="APIFY_FACEBOOK_ACTOR")
     docs_url: str = "/api/facebook/docs"
     title: str = "Yimba API :: Facebook Service"
     openapi_url: str = "/api/facebook/openapi.json"
+
+
+class Tiktok(APIBaseSettings):
+    port: int = Field(..., env="TIKTOK_PORT")
+    host: str = Field(..., env="TIKTOK_HOST")
+    url: HttpUrl = Field(..., env="TIKTOK_BASE_URL")
+    apify_token: str = Field(..., env="APIFY_TOKEN")
+    apify_tiktok_actor: str = Field(..., env="APIFY_TIKTOK_ACTOR")
+    docs_url: str = "/api/tiktok/docs"
+    title: str = "Yimba API :: Tiktok Service"
+    openapi_url: str = "/api/tiktok/openapi.json"
+
+
+class Twitter(APIBaseSettings):
+    port: int = Field(..., env="TWITTER_PORT")
+    host: str = Field(..., env="TWITTER_HOST")
+    url: HttpUrl = Field(..., env="TWITTER_BASE_URL")
+    apify_token: str = Field(..., env="APIFY_TOKEN")
+    apify_twitter_actor: str = Field(..., env="APIFY_TWITTER_ACTOR")
+    docs_url: str = "/api/twitter/docs"
+    title: str = "Yimba API :: Twitter Service"
+    openapi_url: str = "/api/twitter/openapi.json"
+
+
+class Instagram(APIBaseSettings):
+    port: int = Field(..., env="INSTAGRAM_PORT")
+    host: str = Field(..., env="INSTAGRAM_HOST")
+    url: HttpUrl = Field(..., env="INSTAGRAM_BASE_URL")
+    apify_token: str = Field(..., env="APIFY_TOKEN")
+    apify_instagram_actor: str = Field(..., env="APIFY_INSTAGRAM_ACTOR")
+    docs_url: str = "/api/instagram/docs"
+    title: str = "Yimba API :: Instagram Service"
+    openapi_url: str = "/api/instagram/openapi.json"
+
+
+class Google(APIBaseSettings):
+    port: int = Field(..., env="GOOGLE_PORT")
+    host: str = Field(..., env="GOOGLE_HOST")
+    url: HttpUrl = Field(..., env="GOOGLE_BASE_URL")
+    apify_token: str = Field(..., env="APIFY_TOKEN")
+    apify_google_actor: str = Field(..., env="APIFY_GOOGLE_ACTOR")
+    docs_url: str = "/api/google/docs"
+    title: str = "Yimba API :: Google Service"
+    openapi_url: str = "/api/google/openapi.json"
 
 
 def get(name: str) -> APIBaseSettings:
@@ -51,7 +93,15 @@ def get(name: str) -> APIBaseSettings:
             return Project()
         case "params":
             return Params()
+        case "google":
+            return Google()
+        case "tiktok":
+            return Tiktok()
+        case "twitter":
+            return Twitter()
         case "facebook":
             return Facebook()
+        case "instagram":
+            return Instagram()
         case _:
             return

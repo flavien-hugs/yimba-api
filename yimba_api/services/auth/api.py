@@ -30,7 +30,6 @@ def ping():
     return {"message": "pong !"}
 
 
-@router.post("/users", response_model=model.UserOutSchema, summary="Create a User")
 @router.post(
     "/users/clients", response_model=model.UserOutSchema, summary="Create client User"
 )
@@ -40,6 +39,7 @@ async def create_user(payload: model.SignupUser = Body(...)):
         payload_role = await service.validate_roles_exist(payload.role)
         user = model.UserInDB(
             role=payload_role,
+            fullname=payload.fullname,
             email=payload.email.lower(),
             password=hashed_password,
         )
