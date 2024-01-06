@@ -26,7 +26,7 @@ def ping():
 
 @router.get(
     "/",
-    response_model=crud.CustomPage[model.Tiktok],
+    response_model=crud.CustomPage[model.TiktokInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     summary="Search Tiktok by hashtag",
 )
@@ -64,9 +64,6 @@ async def get_tiktok_hashtag(
     sur les hashtags ou récupérez les profils complets des utilisateurs, y compris les messages,
     le nombre total de likes, le nom, le surnom, le nombre de commentaires,
     de partages, de followers, de personnes suivies, etc.
-    :param keyword:
-    :param current_user:
-    :return: dict
     """
     try:
         await service.validate_project_exist(slugify(keyword), current_user)

@@ -26,7 +26,7 @@ def ping():
 
 @router.get(
     "/",
-    response_model=crud.CustomPage[model.Google],
+    response_model=crud.CustomPage[model.GoogleInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     summary="Search Google by hashtag",
 )
