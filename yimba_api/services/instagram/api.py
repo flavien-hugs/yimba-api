@@ -26,7 +26,7 @@ def ping():
 
 @router.get(
     "/",
-    response_model=crud.CustomPage[model.Instagram],
+    response_model=crud.CustomPage[model.InstagramInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     summary="Search Instagram by hashtag",
 )

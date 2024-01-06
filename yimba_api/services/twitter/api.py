@@ -26,7 +26,7 @@ def ping():
 
 @router.get(
     "/",
-    response_model=crud.CustomPage[model.Twitter],
+    response_model=crud.CustomPage[model.TwitterInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     summary="Search Twitter by hashtag",
 )

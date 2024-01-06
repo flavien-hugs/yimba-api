@@ -26,7 +26,7 @@ def ping():
 
 @router.get(
     "/",
-    response_model=crud.CustomPage[model.Facebook],
+    response_model=crud.CustomPage[model.FacebookInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     summary="Search facebook by hashtag",
 )
@@ -64,9 +64,6 @@ async def get_facebook_hashtag(
     Obtenez le texte et l'URL de la publication, l'heure de la publication, les informations
     de base sur la publication, les URL des images et des vidéos, le texte OCR, le nombre de likes,
     de commentaires et de partages, et bien plus encore.
-    :param keyword:
-    :param current_user:
-    :return: dict
     """
     try:
         await service.validate_project_exist(slugify(keyword), current_user)

@@ -31,7 +31,7 @@ def ping():
 
 
 @router.post(
-    "/users/clients", response_model=model.UserOutSchema, summary="Create client User"
+    "/users", response_model=model.UserOutSchema, summary="Create client User"
 )
 async def create_user(payload: model.SignupUser = Body(...)):
     try:
