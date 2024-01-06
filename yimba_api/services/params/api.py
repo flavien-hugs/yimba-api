@@ -55,7 +55,7 @@ async def add_roles(data: model.Role = Body(...)):
         )
 
     ret = await model.RoleInDB(**data.dict()).save(router.storage)
-    return await commun.get(router.storage, model.RoleInDB, ret.inserted_id)
+    return await crud.get(router.storage, model.RoleInDB, ret.inserted_id)
 
 
 @router.patch(
@@ -65,7 +65,7 @@ async def add_roles(data: model.Role = Body(...)):
 )
 async def update_role(role_id: str, payload: model.Role = Body(...)):
     try:
-        obj = await commun.get(router.storage, model.RoleInDB, role_id)
+        obj = await crud.get(router.storage, model.RoleInDB, role_id)
         data = payload.dict(exclude_unset=True)
         for field, value in data.items():
             setattr(obj, field, value)
@@ -97,5 +97,5 @@ async def update_role(role_id: str, payload: model.Role = Body(...)):
     summary="Delete role",
 )
 async def delete_role(role_id: str):
-    result = await commun.delete(router.storage, model.RoleInDB, role_id)
+    result = await crud.delete(router.storage, model.RoleInDB, role_id)
     return result

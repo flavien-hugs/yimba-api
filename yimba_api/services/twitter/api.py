@@ -5,15 +5,15 @@ from fastapi import HTTPException, Query, Security, status
 from fastapi_pagination import paginate
 
 from slugify import slugify
-from yimba_api.shared import crud, scrapper, service
+from yimba_api.services.twitter import model
 from yimba_api.services import router_factory
-from yimba_api.services.facebook import model
+from yimba_api.shared import scrapper, crud, service
 from yimba_api.shared.authentication import AuthTokenBearer
 
 logger = logging.getLogger(__name__)
 
 router = router_factory(
-    prefix="/api/facebook",
+    prefix="/api/twitter",
     tags=["CRUD"],
     responses={404: {"description": "Not found"}},
 )
@@ -26,9 +26,9 @@ def ping():
 
 @router.get(
     "/",
-    response_model=crud.CustomPage[model.Facebook],
+    response_model=crud.CustomPage[model.Twitter],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
-    summary="Search facebook by hashtag",
+    summary="Search Twitter by hashtag",
 )
 async def search(
     query: Optional[str] = Query(
@@ -40,42 +40,38 @@ async def search(
     search_filter = (
         {
             "$or": [
-                {"data.hashtag": {"$regex": query, "$options": "i"}},
+                {"data.hashtags": {"$regex": query, "$options": "i"}},
                 {"data.text": {"$regex": query, "$options": "i"}},
             ]
         }
         if query
         else {}
     )
-    items = model.FacebookInDB.find(router.storage, search_filter if query else {})
+    items = model.TwitterInDB.find(router.storage, search_filter if query else {})
     return paginate([item async for item in items])
 
 
 @router.get(
     "/{keyword}",
-    summary="Get facebook hashtag",
+    summary="Get Twitter hashtag",
 )
-async def get_facebook_hashtag(
+async def get_twitter_hashtag(
     keyword: str,
     current_user: str = Security(AuthTokenBearer(allowed_role=["admin", "client"])),
 ):
     """
-    Extrayez des données de centaines de posts Facebook en utilisant un ou plusieurs hashtags.
-    Obtenez le texte et l'URL de la publication, l'heure de la publication, les informations
-    de base sur la publication, les URL des images et des vidéos, le texte OCR, le nombre de likes,
-    de commentaires et de partages, et bien plus encore.
-    :param keyword:
-    :param current_user:
-    :return: dict
+    Récupérez les tweets de n'importe quel profil d'utilisateur de Twitter.
+    Cette API Twitter récupère les hashtags, fils de discussion,
+    réponses, followers, images, vidéos, statistiques et l'historique de Twitter.
     """
     try:
         await service.validate_project_exist(slugify(keyword), current_user)
-        scraping = await scrapper.scrapping_facebook_data(keyword)
+        scraping = await scrapper.scrapping_twitter_data(keyword)
     except Exception as err:
         logger.error(f"An error occured: {err}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
         ) from err
-    result = await model.FacebookInDB(data=scraping).save(router.storage)
-    response = await crud.get(router.storage, model.FacebookInDB, result.inserted_id)
+    result = await model.TwitterInDB(data=scraping).save(router.storage)
+    response = await crud.get(router.storage, model.TwitterInDB, result.inserted_id)
     return response

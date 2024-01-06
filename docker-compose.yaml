@@ -58,6 +58,82 @@ services:
         env_file:
             - ./dotenv/dev.env
 
+    api.tiktok.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run tiktok
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/tiktok/:/app/yimba_api/services/tiktok
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8093:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
+    api.twitter.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run twitter
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/twitter/:/app/yimba_api/services/twitter
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8094:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
+    api.instagram.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run instagram
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/instagram/:/app/yimba_api/services/instagram
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8095:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
+    api.google.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run google
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/google/:/app/yimba_api/services/google
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8096:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
     api.params.io:
         build:
             context: .
