@@ -25,6 +25,18 @@ def ping():
 
 
 @router.get(
+    "/{id}",
+    response_model=model.InstagramInDB,
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
+    summary="Get Instagram information",
+)
+async def get_instagram_information(id: str):
+    return await crud.get(
+        router.storage, model.InstagramInDB, id, name=f"Instagram Information {id}"
+    )
+
+
+@router.get(
     "/",
     response_model=crud.CustomPage[model.InstagramInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
@@ -75,3 +87,12 @@ async def get_instagram_hashtag(
     result = await model.InstagramInDB(data=scraping).save(router.storage)
     response = await crud.get(router.storage, model.InstagramInDB, result.inserted_id)
     return response
+
+
+@router.delete(
+    "/{id}",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin"]))],
+    summary="Remove Instagram information",
+)
+async def delete_instagram_information(id: str):
+    return await crud.delete(router.storage, model.InstagramInDB, id)

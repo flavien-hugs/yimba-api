@@ -32,7 +32,7 @@ def ping():
 )
 async def get_roles(slug: str = None):
     items = model.RoleInDB.find(router.storage, {"slug": slug} if slug else {})
-    result = [{"key": x.slug, "value": x.name} async for x in items]
+    result = [{"key": x.slug, "value": x.name, "id": x.id} async for x in items]
     return result
 
 
