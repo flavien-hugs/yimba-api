@@ -25,6 +25,19 @@ def ping():
 
 
 @router.get(
+    "/{id}",
+    response_model=model.FacebookInDB,
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
+    summary="Get Facebook information",
+)
+async def get_facebook_information(id: str):
+    result = await crud.get(
+        router.storage, model.FacebookInDB, id, name=f"Facebook Information {id}"
+    )
+    return result
+
+
+@router.get(
     "/",
     response_model=crud.CustomPage[model.FacebookInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
@@ -76,3 +89,12 @@ async def get_facebook_hashtag(
     result = await model.FacebookInDB(data=scraping).save(router.storage)
     response = await crud.get(router.storage, model.FacebookInDB, result.inserted_id)
     return response
+
+
+@router.delete(
+    "/{id}",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin"]))],
+    summary="Remove Facebook information",
+)
+async def delete_facebook_information(id: str):
+    return await crud.delete(router.storage, model.FacebookInDB, id)

@@ -18,6 +18,11 @@ router = router_factory(
 )
 
 
+@router.get("/@ping")
+def ping():
+    return {"message": "pong !"}
+
+
 @router.post(
     "/",
     summary="Create new project",
@@ -83,6 +88,7 @@ async def get_project_by_slug(slug: str = None):
 
 @router.get(
     "/{project_id}",
+    response_model=model.ProjectInDB,
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     summary="Get single project",
 )

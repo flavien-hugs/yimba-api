@@ -25,6 +25,18 @@ def ping():
 
 
 @router.get(
+    "/{id}",
+    response_model=model.GoogleInDB,
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
+    summary="Get Google information",
+)
+async def get_google_information(id: str):
+    return await crud.get(
+        router.storage, model.GoogleInDB, id, name=f"Google Information {id}"
+    )
+
+
+@router.get(
     "/",
     response_model=crud.CustomPage[model.GoogleInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
@@ -75,3 +87,12 @@ async def get_google_hashtag(
     result = await model.GoogleInDB(data=scraping).save(router.storage)
     response = await crud.get(router.storage, model.GoogleInDB, result.inserted_id)
     return response
+
+
+@router.delete(
+    "/{id}",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin"]))],
+    summary="Remove Google information",
+)
+async def delete_google_information(id: str):
+    return await crud.delete(router.storage, model.GoogleInDB, id)

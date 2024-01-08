@@ -25,6 +25,18 @@ def ping():
 
 
 @router.get(
+    "/{id}",
+    response_model=model.TwitterInDB,
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
+    summary="Get Twitter information",
+)
+async def get_tiktok_information(id: str):
+    return await crud.get(
+        router.storage, model.TwitterInDB, id, name=f"Twitter Information {id}"
+    )
+
+
+@router.get(
     "/",
     response_model=crud.CustomPage[model.TwitterInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
@@ -75,3 +87,12 @@ async def get_twitter_hashtag(
     result = await model.TwitterInDB(data=scraping).save(router.storage)
     response = await crud.get(router.storage, model.TwitterInDB, result.inserted_id)
     return response
+
+
+@router.delete(
+    "/{id}",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin"]))],
+    summary="Remove Twitter information",
+)
+async def delete_twitter_information(id: str):
+    return await crud.delete(router.storage, model.TwitterInDB, id)

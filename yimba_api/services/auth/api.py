@@ -30,9 +30,7 @@ def ping():
     return {"message": "pong !"}
 
 
-@router.post(
-    "/users", response_model=model.UserOutSchema, summary="Create client User"
-)
+@router.post("/users", response_model=model.UserOutSchema, summary="Create client User")
 async def create_user(payload: model.SignupUser = Body(...)):
     try:
         hashed_password = model.UserInDB.hash_password(payload.password)
