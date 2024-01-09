@@ -38,7 +38,8 @@ async def search(
     )
 ):
     if query is None:
-        return paginate([])
+        items = model.FacebookInDB.find(router.storage, {})
+        return paginate([item async for item in items])
 
     search_terms = map(slugify, query.split())
     search_filter = {

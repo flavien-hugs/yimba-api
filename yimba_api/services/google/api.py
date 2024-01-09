@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import HTTPException, Query, Security, status
 from fastapi_pagination import paginate
 
+from slugify import slugify
 from yimba_api.services.google import model
 from yimba_api.services import router_factory
 from yimba_api.shared import scrapper, crud
@@ -24,18 +25,6 @@ def ping():
 
 
 @router.get(
-    "/{id}",
-    response_model=model.GoogleInDB,
-    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
-    summary="Get Google information",
-)
-async def get_google_information(id: str):
-    return await crud.get(
-        router.storage, model.GoogleInDB, id, name=f"Google Information {id}"
-    )
-
-
-@router.get(
     "/",
     response_model=crud.CustomPage[model.GoogleInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
@@ -48,17 +37,22 @@ async def search(
         description="Search by items: hashtag, text",
     )
 ):
-    search_filter = (
-        {
-            "$or": [
-                {"data.searchQuery.term": {"$regex": query, "$options": "i"}},
-                {"data.organicResults.title": {"$regex": query, "$options": "i"}},
-            ]
-        }
-        if query
-        else {}
-    )
-    items = model.GoogleInDB.find(router.storage, search_filter if query else {})
+    if query is None:
+        items = model.GoogleInDB.find(router.storage, {})
+        return paginate([item async for item in items])
+
+    search_terms = map(slugify, query.split())
+    search_filter = {
+        "$or": [
+            {"data.searchQuery.term": {"$regex": term, "$options": "i"}}
+            for term in search_terms
+        ]
+        + [
+            {"data.organicResults.title": {"$regex": query, "$options": "i"}}
+            for term in search_terms
+        ]
+    }
+    items = model.GoogleInDB.find(router.storage, search_filter)
     return paginate([item async for item in items])
 
 
