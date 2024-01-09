@@ -4,10 +4,9 @@ from typing import Optional
 from fastapi import HTTPException, Query, Security, status
 from fastapi_pagination import paginate
 
-from slugify import slugify
 from yimba_api.services.twitter import model
 from yimba_api.services import router_factory
-from yimba_api.shared import scrapper, crud, service
+from yimba_api.shared import scrapper, crud
 from yimba_api.shared.authentication import AuthTokenBearer
 
 logger = logging.getLogger(__name__)
@@ -65,19 +64,16 @@ async def search(
 
 @router.get(
     "/{keyword}",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     summary="Get Twitter hashtag",
 )
-async def get_twitter_hashtag(
-    keyword: str,
-    current_user: str = Security(AuthTokenBearer(allowed_role=["admin", "client"])),
-):
+async def get_twitter_hashtag(keyword: str):
     """
     Récupérez les tweets de n'importe quel profil d'utilisateur de Twitter.
     Cette API Twitter récupère les hashtags, fils de discussion,
     réponses, followers, images, vidéos, statistiques et l'historique de Twitter.
     """
     try:
-        # await service.validate_project_exist(slugify(keyword), current_user)
         scraping = await scrapper.scrapping_twitter_data(keyword)
     except Exception as err:
         logger.error(f"An error occured: {err}")

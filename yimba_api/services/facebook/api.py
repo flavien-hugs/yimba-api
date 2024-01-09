@@ -4,8 +4,7 @@ from typing import Optional
 from fastapi import HTTPException, Query, Security, status
 from fastapi_pagination import paginate
 
-from slugify import slugify
-from yimba_api.shared import crud, scrapper, service
+from yimba_api.shared import crud, scrapper
 from yimba_api.services import router_factory
 from yimba_api.services.facebook import model
 from yimba_api.shared.authentication import AuthTokenBearer
@@ -66,6 +65,7 @@ async def search(
 
 @router.get(
     "/{keyword}",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     summary="Get facebook hashtag",
 )
 async def get_facebook_hashtag(
@@ -79,7 +79,6 @@ async def get_facebook_hashtag(
     de commentaires et de partages, et bien plus encore.
     """
     try:
-        # await service.validate_project_exist(slugify(keyword), current_user)
         scraping = await scrapper.scrapping_facebook_data(keyword)
     except Exception as err:
         logger.error(f"An error occured: {err}")

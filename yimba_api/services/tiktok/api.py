@@ -4,10 +4,9 @@ from typing import Optional
 from fastapi import HTTPException, Query, Security, status
 from fastapi_pagination import paginate
 
-from slugify import slugify
 from yimba_api.services.tiktok import model
 from yimba_api.services import router_factory
-from yimba_api.shared import scrapper, crud, service
+from yimba_api.shared import scrapper, crud
 from yimba_api.shared.authentication import AuthTokenBearer
 
 logger = logging.getLogger(__name__)
@@ -65,12 +64,10 @@ async def search(
 
 @router.get(
     "/{keyword}",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     summary="Get Tiktok hashtag",
 )
-async def get_tiktok_hashtag(
-    keyword: str,
-    current_user: str = Security(AuthTokenBearer(allowed_role=["admin", "client"])),
-):
+async def get_tiktok_hashtag(keyword: str):
     """
     Extrayez des données sur les vidéos, les utilisateurs et les chaînes en vous basant
     sur les hashtags ou récupérez les profils complets des utilisateurs, y compris les messages,
@@ -78,7 +75,6 @@ async def get_tiktok_hashtag(
     de partages, de followers, de personnes suivies, etc.
     """
     try:
-        # await service.validate_project_exist(slugify(keyword), current_user)
         scraping = await scrapper.scrapping_tiktok_data(keyword)
     except Exception as err:
         logger.error(f"An error occured: {err}")
