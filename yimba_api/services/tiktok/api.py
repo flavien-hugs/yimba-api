@@ -78,7 +78,7 @@ async def get_tiktok_hashtag(
     de partages, de followers, de personnes suivies, etc.
     """
     try:
-        await service.validate_project_exist(slugify(keyword), current_user)
+        # await service.validate_project_exist(slugify(keyword), current_user)
         scraping = await scrapper.scrapping_tiktok_data(keyword)
     except Exception as err:
         logger.error(f"An error occured: {err}")

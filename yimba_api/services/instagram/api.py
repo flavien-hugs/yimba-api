@@ -77,7 +77,7 @@ async def get_instagram_hashtag(
     ou de requêtes de recherche.
     """
     try:
-        await service.validate_project_exist(slugify(keyword), current_user)
+        # await service.validate_project_exist(slugify(keyword), current_user)
         scraping = await scrapper.scrapping_instagram_data(keyword)
     except Exception as err:
         logger.error(f"An error occured: {err}")

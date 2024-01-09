@@ -77,7 +77,7 @@ async def get_google_hashtag(
     les personnes qui demandent aussi, les prix, les avis, comme une API SERP de Google.
     """
     try:
-        await service.validate_project_exist(slugify(keyword), current_user)
+        # await service.validate_project_exist(slugify(keyword), current_user)
         scraping = await scrapper.scrapping_google_data(keyword)
     except Exception as err:
         logger.error(f"An error occured: {err}")
