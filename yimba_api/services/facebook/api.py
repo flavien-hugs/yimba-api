@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import HTTPException, Query, Security, status
 from fastapi_pagination import paginate
 
+from slugify import slugify
 from yimba_api.services import router_factory
 from yimba_api.services.facebook import model
 from yimba_api.shared import crud, service, scrapper
