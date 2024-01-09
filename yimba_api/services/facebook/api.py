@@ -4,9 +4,9 @@ from typing import Optional
 from fastapi import HTTPException, Query, Security, status
 from fastapi_pagination import paginate
 
-from yimba_api.shared import crud, scrapper
 from yimba_api.services import router_factory
 from yimba_api.services.facebook import model
+from yimba_api.shared import crud, service, scrapper
 from yimba_api.shared.authentication import AuthTokenBearer
 
 logger = logging.getLogger(__name__)
@@ -23,17 +23,17 @@ def ping():
     return {"message": "pong !"}
 
 
-@router.get(
-    "/{id}",
-    response_model=model.FacebookInDB,
-    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
-    summary="Get Facebook information",
-)
-async def get_facebook_information(id: str):
-    result = await crud.get(
-        router.storage, model.FacebookInDB, id, name=f"Facebook Information {id}"
-    )
-    return result
+# @router.get(
+#     "/{id}",
+#     response_model=model.FacebookInDB,
+#     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
+#     summary="Get Facebook information",
+# )
+# async def get_facebook_information(id: str):
+#     result = await crud.get(
+#         router.storage, model.FacebookInDB, id, name=f"Facebook Information {id}"
+#     )
+#     return result
 
 
 @router.get(
@@ -52,11 +52,11 @@ async def search(
     search_filter = (
         {
             "$or": [
-                {"data.hashtag": {"$regex": query, "$options": "i"}},
-                {"data.text": {"$regex": query, "$options": "i"}},
+                {"data.hashtag": {"$regex": slugify(query), "$options": "i"}},
+                {"data.text": {"$regex": slugify(query), "$options": "i"}},
             ]
         }
-        if query
+        if slugify(query)
         else {}
     )
     items = model.FacebookInDB.find(router.storage, search_filter if query else {})
@@ -79,7 +79,7 @@ async def get_facebook_hashtag(
     de commentaires et de partages, et bien plus encore.
     """
     try:
-        scraping = await scrapper.scrapping_facebook_data(keyword)
+        scraping = await scrapper.scrapping_facebook_data(slugify(query))
     except Exception as err:
         logger.error(f"An error occured: {err}")
         raise HTTPException(
