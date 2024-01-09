@@ -31,9 +31,7 @@ def ping():
 #     summary="Get Facebook information",
 # )
 # async def get_facebook_information(id: str):
-#     result = await crud.get(
-#         router.storage, model.FacebookInDB, id, name=f"Facebook Information {id}"
-#     )
+#     result = await crud.get(router.storage, model.FacebookInDB, id, name=f"Facebook Information {id}")
 #     return result
 
 
