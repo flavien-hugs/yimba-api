@@ -79,7 +79,7 @@ async def get_facebook_hashtag(
     de commentaires et de partages, et bien plus encore.
     """
     try:
-        await service.validate_project_exist(slugify(keyword), current_user)
+        # await service.validate_project_exist(slugify(keyword), current_user)
         scraping = await scrapper.scrapping_facebook_data(keyword)
     except Exception as err:
         logger.error(f"An error occured: {err}")

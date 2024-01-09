@@ -77,7 +77,7 @@ async def get_twitter_hashtag(
     réponses, followers, images, vidéos, statistiques et l'historique de Twitter.
     """
     try:
-        await service.validate_project_exist(slugify(keyword), current_user)
+        # await service.validate_project_exist(slugify(keyword), current_user)
         scraping = await scrapper.scrapping_twitter_data(keyword)
     except Exception as err:
         logger.error(f"An error occured: {err}")
