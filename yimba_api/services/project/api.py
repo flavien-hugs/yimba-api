@@ -34,8 +34,7 @@ async def create_project(
     result = None
     payload_user = decode_access_token(current_user)
     for key in payload.name.split(","):
-        hashtag = key.strip()
-        if hashtag:
+        if hashtag := key.strip():
             result = await model.ProjectInDB(
                 name=hashtag, user_id=payload_user.sub
             ).save(router.storage)

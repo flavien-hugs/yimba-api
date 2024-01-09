@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import HTTPException, Query, Security, status
 from fastapi_pagination import paginate
 
+from slugify import slugify
 from yimba_api.services.twitter import model
 from yimba_api.services import router_factory
 from yimba_api.shared import scrapper, crud
@@ -24,18 +25,6 @@ def ping():
 
 
 @router.get(
-    "/{id}",
-    response_model=model.TwitterInDB,
-    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
-    summary="Get Twitter information",
-)
-async def get_tiktok_information(id: str):
-    return await crud.get(
-        router.storage, model.TwitterInDB, id, name=f"Twitter Information {id}"
-    )
-
-
-@router.get(
     "/",
     response_model=crud.CustomPage[model.TwitterInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
@@ -48,17 +37,19 @@ async def search(
         description="Search by items: hashtag, text",
     )
 ):
-    search_filter = (
-        {
-            "$or": [
-                {"data.hashtags": {"$regex": query, "$options": "i"}},
-                {"data.text": {"$regex": query, "$options": "i"}},
-            ]
-        }
-        if query
-        else {}
-    )
-    items = model.TwitterInDB.find(router.storage, search_filter if query else {})
+    if query is None:
+        items = model.TwitterInDB.find(router.storage, {})
+        return paginate([item async for item in items])
+
+    search_terms = map(slugify, query.split())
+    search_filter = {
+        "$or": [
+            {"data.hashtags": {"$regex": query, "$options": "i"}}
+            for term in search_terms
+        ]
+        + [{"data.text": {"$regex": query, "$options": "i"}} for term in search_terms]
+    }
+    items = model.TwitterInDB.find(router.storage, search_filter)
     return paginate([item async for item in items])
 
 
