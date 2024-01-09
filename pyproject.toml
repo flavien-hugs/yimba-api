@@ -19,6 +19,9 @@ passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 facebook-scraper = "^0.2.59"
 apify-client = "^1.6.1"
 python-slugify = "^8.0.1"
+vadersentiment = "^3.3.2"
+textblob-fr = "^0.2.0"
+newsapi-python = "^0.2.7"
 
 
 [tool.poetry.group.dev.dependencies]
