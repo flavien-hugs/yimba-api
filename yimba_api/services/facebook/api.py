@@ -4,6 +4,7 @@ from typing import Optional
 from fastapi import HTTPException, Query, Security, status
 from fastapi_pagination import paginate
 
+from slugify import slugify
 from yimba_api.services import router_factory
 from yimba_api.services.facebook import model
 from yimba_api.shared import crud, service, scrapper
@@ -30,9 +31,7 @@ def ping():
 #     summary="Get Facebook information",
 # )
 # async def get_facebook_information(id: str):
-#     result = await crud.get(
-#         router.storage, model.FacebookInDB, id, name=f"Facebook Information {id}"
-#     )
+#     result = await crud.get(router.storage, model.FacebookInDB, id, name=f"Facebook Information {id}")
 #     return result
 
 
