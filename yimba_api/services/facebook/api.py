@@ -37,7 +37,10 @@ async def search(
         description="Search by items: hashtag, text",
     )
 ):
-    search_terms = map(slugify, query.split()) if query else []
+    if query is None:
+        return paginate([])
+
+    search_terms = map(slugify, query.split())
     search_filter = {
         "$or": [
             {"data.hashtag": {"$regex": term, "$options": "i"}} for term in search_terms
@@ -45,7 +48,7 @@ async def search(
         + [{"data.text": {"$regex": term, "$options": "i"}} for term in search_terms]
     }
     items = model.FacebookInDB.find(router.storage, search_filter)
-    return paginate([item async for item in items]) if query else paginate([])
+    return paginate([item async for item in items])
 
 
 @router.get(
