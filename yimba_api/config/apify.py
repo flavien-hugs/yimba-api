@@ -10,6 +10,7 @@ class ApifyClientSettings(YimbaBaseSettings):
     apify_twitter_actor: str = Field(..., env="APIFY_TWITTER_ACTOR")
     apify_facebook_actor: str = Field(..., env="APIFY_FACEBOOK_ACTOR")
     apify_instagram_actor: str = Field(..., env="APIFY_INSTAGRAM_ACTOR")
+    newsapi_key: str = Field(..., env="NEWSAPI_KEY")
 
 
 settings = ApifyClientSettings()
