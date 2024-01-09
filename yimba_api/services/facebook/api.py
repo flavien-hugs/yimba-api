@@ -7,7 +7,7 @@ from fastapi_pagination import paginate
 from slugify import slugify
 from yimba_api.services import router_factory
 from yimba_api.services.facebook import model
-from yimba_api.shared import crud, service, scrapper
+from yimba_api.shared import crud, scrapper
 from yimba_api.shared.authentication import AuthTokenBearer
 
 logger = logging.getLogger(__name__)
@@ -24,17 +24,6 @@ def ping():
     return {"message": "pong !"}
 
 
-# @router.get(
-#     "/{id}",
-#     response_model=model.FacebookInDB,
-#     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
-#     summary="Get Facebook information",
-# )
-# async def get_facebook_information(id: str):
-#     result = await crud.get(router.storage, model.FacebookInDB, id, name=f"Facebook Information {id}")
-#     return result
-
-
 @router.get(
     "/",
     response_model=crud.CustomPage[model.FacebookInDB],
@@ -48,16 +37,13 @@ async def search(
         description="Search by items: hashtag, text",
     )
 ):
-    search_filter = (
-        {
-            "$or": [
-                {"data.hashtag": {"$regex": slugify(query), "$options": "i"}},
-                {"data.text": {"$regex": slugify(query), "$options": "i"}},
-            ]
-        }
-        if slugify(query)
-        else {}
-    )
+    search_terms = map(slugify, query.split())
+    search_filter = {
+        "$or": [
+            {"data.hashtag": {"$regex": term, "$options": "i"}} for term in search_terms
+        ]
+        + [{"data.text": {"$regex": term, "$options": "i"}} for term in search_terms]
+    }
     items = model.FacebookInDB.find(router.storage, search_filter if query else {})
     return paginate([item async for item in items])
 
