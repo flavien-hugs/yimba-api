@@ -51,6 +51,10 @@ async def search(
             {"data.latestPosts.hashtags": {"$regex": query, "$options": "i"}}
             for term in search_terms
         ]
+        + [
+            {"data.searchTerm": {"$regex": query, "$options": "i"}}
+            for term in search_terms
+        ]
     }
     items = model.InstagramInDB.find(router.storage, search_filter)
     return paginate([item async for item in items])
@@ -68,13 +72,13 @@ async def get_instagram_hashtag(keyword: str):
     ou de requêtes de recherche.
     """
     try:
-        scraping = await scrapper.scrapping_instagram_data(keyword)
+        data = await scrapper.scrapping_instagram_data(keyword)
     except Exception as err:
         logger.error(f"An error occured: {err}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
         ) from err
-    result = await model.InstagramInDB(data=scraping).save(router.storage)
+    result = await model.InstagramInDB(data=data).save(router.storage)
     response = await crud.get(router.storage, model.InstagramInDB, result.inserted_id)
     return response
 

@@ -44,11 +44,15 @@ async def search(
     search_terms = map(slugify, query.split())
     search_filter = {
         "$or": [
-            {"data.searchQuery.term": {"$regex": term, "$options": "i"}}
+            {"data.google.description": {"$regex": term, "$options": "i"}}
             for term in search_terms
         ]
         + [
-            {"data.organicResults.title": {"$regex": query, "$options": "i"}}
+            {"data.google.title": {"$regex": query, "$options": "i"}}
+            for term in search_terms
+        ]
+        + [
+            {"data.newsapi.title": {"$regex": query, "$options": "i"}}
             for term in search_terms
         ]
     }
@@ -68,13 +72,18 @@ async def get_google_hashtag(keyword: str):
     les personnes qui demandent aussi, les prix, les avis, comme une API SERP de Google.
     """
     try:
-        scraping = await scrapper.scrapping_google_data(keyword)
+        newsapi_data = await scrapper.scrapping_newsapi(keyword)
+        google_data = await scrapper.scrapping_google_data(keyword)
+        data = {
+            "google": google_data[0].get("organicResults", ""),
+            "newsapi": newsapi_data,
+        }
     except Exception as err:
         logger.error(f"An error occured: {err}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
         ) from err
-    result = await model.GoogleInDB(data=scraping).save(router.storage)
+    result = await model.GoogleInDB(data=data).save(router.storage)
     response = await crud.get(router.storage, model.GoogleInDB, result.inserted_id)
     return response
 

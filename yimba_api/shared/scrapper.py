@@ -1,18 +1,20 @@
+from newsapi import NewsApiClient
 from apify_client import ApifyClient
+
 from yimba_api.config.apify import settings
 
 client = ApifyClient(token=settings.apify_token)
+newsapi = NewsApiClient(api_key=settings.newsapi_key)
 tiktok_actor_run = client.actor(settings.apify_tiktok_actor)
 google_actor_run = client.actor(settings.apify_google_actor)
 twitter_actor_run = client.actor(settings.apify_twitter_actor)
 facebook_actor_run = client.actor(settings.apify_facebook_actor)
-instagram_actore_run = client.actor(settings.apify_instagram_actor)
+instagram_actor_run = client.actor(settings.apify_instagram_actor)
+instahash_actor_run = client.actor(settings.apify_instahash_actor)
 
 
 async def scrapping_facebook_data(keyword: str):
-    result = facebook_actor_run.call(
-        run_input={"keywordList": [keyword], "resultsLimit": 20}
-    )
+    result = facebook_actor_run.call(run_input={"keywordList": [keyword], "resultsLimit": 20})
     if result["status"] != "SUCCEEDED":
         raise RuntimeError("The facebook scraper run has failed")
     dataset = client.dataset(result["defaultDatasetId"]).list_items().items
@@ -60,7 +62,7 @@ async def scrapping_instagram_data(keyword: str):
         "searchType": "hashtag",
         "searchLimit": 20,
     }
-    result = instagram_actore_run.call(run_input=run_input)
+    result = instagram_actor_run.call(run_input=run_input)
     if result["status"] != "SUCCEEDED":
         raise RuntimeError("The Instragram scraper run has failed")
     dataset = client.dataset(result["defaultDatasetId"]).list_items().items
@@ -84,3 +86,10 @@ async def scrapping_google_data(keyword: str):
         raise RuntimeError("The Google scraper run has failed")
     dataset = client.dataset(result["defaultDatasetId"]).list_items().items
     return dataset
+
+
+async def scrapping_newsapi(keyword: str):
+    result = newsapi.get_everything(q=keyword, sort_by="relevancy", page=5)
+    if result.get("status") != "ok":
+        raise RuntimeError("The NewsAPI scraper run has failed")
+    return result.get("articles")

@@ -79,6 +79,7 @@ class Google(APIBaseSettings):
     host: str = Field(..., env="GOOGLE_HOST")
     url: HttpUrl = Field(..., env="GOOGLE_BASE_URL")
     apify_token: str = Field(..., env="APIFY_TOKEN")
+    newsapi_key: str = Field(..., env="NEWSAPI_KEY")
     apify_google_actor: str = Field(..., env="APIFY_GOOGLE_ACTOR")
     docs_url: str = "/api/google/docs"
     title: str = "Yimba API :: Google Service"
