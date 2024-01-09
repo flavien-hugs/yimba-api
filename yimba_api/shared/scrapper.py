@@ -10,7 +10,6 @@ google_actor_run = client.actor(settings.apify_google_actor)
 twitter_actor_run = client.actor(settings.apify_twitter_actor)
 facebook_actor_run = client.actor(settings.apify_facebook_actor)
 instagram_actor_run = client.actor(settings.apify_instagram_actor)
-instahash_actor_run = client.actor(settings.apify_instahash_actor)
 
 
 async def scrapping_facebook_data(keyword: str):
