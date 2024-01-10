@@ -1,6 +1,23 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from yimba_api.config.sentry import settings as sentry_env
+
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.starlette import StarletteIntegration
+
+
+sentry_sdk.init(
+    dsn=sentry_env.dsn,
+    environment=sentry_env.environment,
+    release=sentry_env.release,
+    integrations=[
+        FastApiIntegration(transaction_style="endpoint"),
+        StarletteIntegration(transaction_style="endpoint"),
+    ],
+)
+
 
 def router_factory(**kwargs) -> APIRouter:
     from yimba_api import NosqlClient
