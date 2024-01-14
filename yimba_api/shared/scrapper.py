@@ -9,13 +9,12 @@ tiktok_actor_run = client.actor(settings.apify_tiktok_actor)
 google_actor_run = client.actor(settings.apify_google_actor)
 twitter_actor_run = client.actor(settings.apify_twitter_actor)
 facebook_actor_run = client.actor(settings.apify_facebook_actor)
+youtube_actor_run = client.actor(settings.apify_youtube_actor)
 instagram_actor_run = client.actor(settings.apify_instagram_actor)
 
 
 async def scrapping_facebook_data(keyword: str):
-    result = facebook_actor_run.call(
-        run_input={"keywordList": [keyword], "resultsLimit": 20}
-    )
+    result = facebook_actor_run.call(run_input={"keywordList": [keyword], "resultsLimit": 20})
     if result["status"] != "SUCCEEDED":
         raise RuntimeError("The facebook scraper run has failed")
     dataset = client.dataset(result["defaultDatasetId"]).list_items().items
@@ -66,6 +65,22 @@ async def scrapping_instagram_data(keyword: str):
     result = instagram_actor_run.call(run_input=run_input)
     if result["status"] != "SUCCEEDED":
         raise RuntimeError("The Instragram scraper run has failed")
+    dataset = client.dataset(result["defaultDatasetId"]).list_items().items
+    return dataset
+
+
+async def scrapping_youtube_data(keyword: str):
+    run_input = {
+        "searchKeywords": keyword,
+        "maxResults": 10,
+        "sortingOrder": "views",
+        "sortChannelShortsBy": "POPULAR",
+        "maxResultsShorts": 0,
+        "maxResultStreams": 0,
+    }
+    result = youtube_actor_run.call(run_input=run_input)
+    if result["status"] != "SUCCEEDED":
+        raise RuntimeError("The Youtube scraper run has failed")
     dataset = client.dataset(result["defaultDatasetId"]).list_items().items
     return dataset
 
