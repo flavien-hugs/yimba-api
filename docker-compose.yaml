@@ -134,6 +134,25 @@ services:
         env_file:
             - ./dotenv/dev.env
 
+    api.youtube.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run youtube
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/youtube/:/app/yimba_api/services/youtube
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8097:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
     api.params.io:
         build:
             context: .

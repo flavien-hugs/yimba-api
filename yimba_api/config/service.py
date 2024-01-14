@@ -86,6 +86,17 @@ class Google(APIBaseSettings):
     openapi_url: str = "/api/google/openapi.json"
 
 
+class Youtube(APIBaseSettings):
+    port: int = Field(..., env="YOUTUBE_PORT")
+    host: str = Field(..., env="YOUTUBE_HOST")
+    url: HttpUrl = Field(..., env="YOUTUBE_BASE_URL")
+    apify_token: str = Field(..., env="APIFY_TOKEN")
+    apify_youtube_actor: str = Field(..., env="APIFY_YOUTUBE_ACTOR")
+    docs_url: str = "/api/youtube/docs"
+    title: str = "Yimba API :: Youtube Service"
+    openapi_url: str = "/api/youtube/openapi.json"
+
+
 def get(name: str) -> APIBaseSettings:
     match name:
         case "auth":
@@ -102,6 +113,8 @@ def get(name: str) -> APIBaseSettings:
             return Twitter()
         case "facebook":
             return Facebook()
+        case "youtube":
+            return Youtube()
         case "instagram":
             return Instagram()
         case _:
