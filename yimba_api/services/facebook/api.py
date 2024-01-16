@@ -80,12 +80,6 @@ async def get_facebook_hashtag(
         ) from err
 
     for data in scraping:
-        if post := model.FacebookInDB.find_one(
-            router.storage, {"data.postId": data.get("postId")}
-        ):
-            logger.info(f"Object with postId {post.id} already exists. Skipping.")
-            continue
-
         result = await model.FacebookInDB(data=data).save(router.storage)
         response = await crud.get(
             router.storage, model.FacebookInDB, result.inserted_id
