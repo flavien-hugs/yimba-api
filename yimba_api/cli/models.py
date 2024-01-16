@@ -7,6 +7,7 @@ class ServiceName(str, Enum):
     project = "project"
     tiktok = "tiktok"
     google = "google"
+    analyse = "analyse"
     twitter = "twitter"
     youtube = "youtube"
     facebook = "facebook"

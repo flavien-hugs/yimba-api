@@ -1,16 +1,19 @@
 import logging
 from typing import Optional
 
+from fastapi.responses import JSONResponse
 from fastapi import HTTPException, Query, Security, status
 from fastapi_pagination import paginate
 
 from slugify import slugify
 from yimba_api.services.instagram import model
 from yimba_api.services import router_factory
-from yimba_api.shared import scrapper, crud
+from yimba_api.shared import scrapper, crud, service
 from yimba_api.shared.authentication import AuthTokenBearer
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 logger = logging.getLogger(__name__)
+analyzer = SentimentIntensityAnalyzer()
 
 router = router_factory(
     prefix="/api/instagram",
@@ -29,6 +32,7 @@ def ping():
     response_model=crud.CustomPage[model.InstagramInDB],
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     summary="Search Instagram by hashtag",
+    status_code=status.HTTP_200_OK,
 )
 async def search(
     query: Optional[str] = Query(
@@ -61,32 +65,59 @@ async def search(
 
 
 @router.get(
-    "/{keyword}",
-    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
-    summary="Get Instagram hashtag",
+    "/{keyword}", summary="Get Instagram hashtag", status_code=status.HTTP_200_OK
 )
-async def get_instagram_hashtag(keyword: str):
+async def get_instagram_hashtag(
+    keyword: str,
+    current_user: str = Security(AuthTokenBearer(allowed_role=["admin", "client"])),
+):
     """
     Grattez et téléchargez des posts, profils, lieux, hashtags, photos et commentaires
     Instagram. Obtenez des données d'Instagram à l'aide d'un hashtag Instagram
     ou de requêtes de recherche.
     """
     try:
-        data = await scrapper.scrapping_instagram_data(keyword)
+        instagram_data = await scrapper.scrapping_instagram_data(keyword)
+        topsposts = instagram_data[0].get("topPosts", "")
     except Exception as err:
         logger.error(f"An error occured: {err}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
         ) from err
-    result = await model.InstagramInDB(data=data).save(router.storage)
-    response = await crud.get(router.storage, model.InstagramInDB, result.inserted_id)
-    return response
+
+    for data in topsposts:
+        if post := model.InstagramInDB.find_one(
+            router.storage, {"data.id": data.get("id")}
+        ):
+            logger.info(f"Object with Id {post.id} already exists. Skipping.")
+            continue
+
+        result = await model.InstagramInDB(data=data).save(router.storage)
+        response = await crud.get(
+            router.storage, model.InstagramInDB, result.inserted_id
+        )
+        apc = analyzer.polarity_scores(response.data.get("caption"))
+        await service.analyse_post_text(
+            {
+                "post_id": result.inserted_id,
+                "neutre": apc.get("neu"),
+                "negatif": apc.get("neg"),
+                "positif": apc.get("pos"),
+                "compound": apc.get("compound"),
+            },
+            current_user,
+        )
+
+    return JSONResponse(
+        status_code=status.HTTP_200_OK, content={"message": "Scrapping successful!"}
+    )
 
 
 @router.delete(
     "/{id}",
     dependencies=[Security(AuthTokenBearer(allowed_role=["admin"]))],
     summary="Remove Instagram information",
+    status_code=status.HTTP_204_NO_CONTENT,
 )
 async def delete_instagram_information(id: str):
     return await crud.delete(router.storage, model.InstagramInDB, id)
