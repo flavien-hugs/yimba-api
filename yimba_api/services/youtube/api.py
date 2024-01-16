@@ -70,12 +70,6 @@ async def get_youtube_hashtag(
         ) from err
 
     for data in scraping:
-        if post := model.YoutubeInDB.find_one(
-            router.storage, {"data.id": data.get("id")}
-        ):
-            logger.info(f"Object with Id {post.id} already exists. Skipping.")
-            continue
-
         result = await model.YoutubeInDB(data=data).save(router.storage)
         response = await crud.get(router.storage, model.YoutubeInDB, result.inserted_id)
         apc = analyzer.polarity_scores(response.data.get("text"))
