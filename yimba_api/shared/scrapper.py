@@ -14,7 +14,9 @@ instagram_actor_run = client.actor(settings.apify_instagram_actor)
 
 
 async def scrapping_facebook_data(keyword: str):
-    result = facebook_actor_run.call(run_input={"keywordList": [keyword], "resultsLimit": 20})
+    result = facebook_actor_run.call(
+        run_input={"keywordList": [keyword], "resultsLimit": 20}
+    )
     if result["status"] != "SUCCEEDED":
         raise RuntimeError("The facebook scraper run has failed")
     dataset = client.dataset(result["defaultDatasetId"]).list_items().items

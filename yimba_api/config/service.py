@@ -97,6 +97,15 @@ class Youtube(APIBaseSettings):
     openapi_url: str = "/api/youtube/openapi.json"
 
 
+class Analyse(APIBaseSettings):
+    port: int = Field(..., env="ANALYSE_PORT")
+    host: str = Field(..., env="ANALYSE_HOST")
+    url: HttpUrl = Field(..., env="ANALYSE_BASE_URL")
+    docs_url: str = "/api/analyse/docs"
+    title: str = "Yimba API :: Analyse Service"
+    openapi_url: str = "/api/analyse/openapi.json"
+
+
 def get(name: str) -> APIBaseSettings:
     match name:
         case "auth":
@@ -117,5 +126,7 @@ def get(name: str) -> APIBaseSettings:
             return Youtube()
         case "instagram":
             return Instagram()
+        case "analyse":
+            return Analyse()
         case _:
             return

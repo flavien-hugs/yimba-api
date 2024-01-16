@@ -10,6 +10,7 @@ from yimba_api.shared.authentication import AuthTokenBearer
 AUTH_CONFIG: config_service.Auth = config_service.get("auth")
 PARAMS_CONFIG: config_service.Params = config_service.get("params")
 PROJECT_CONFIG: config_service.Project = config_service.get("project")
+ANALYSE_CONFIG: config_service.Analyse = config_service.get("analyse")
 
 
 async def validate_resource_exist(
@@ -147,3 +148,31 @@ async def validate_project_exist(
         allowed_roles=["admin", "client"],
         error_message=f"Project '{slug}' not found.",
     )
+
+
+async def analyse_post_text(
+    payload: dict,
+    current_user: Optional[str] = None,
+) -> httpx.Response:
+    headers = {"Authorization": f"Bearer {current_user}"}
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                ANALYSE_CONFIG.url, json=payload, headers=headers
+            )
+            if (
+                status.HTTP_300_MULTIPLE_CHOICES
+                <= response.status_code
+                < status.HTTP_400_BAD_REQUEST
+                and "location" in response.headers
+            ):
+                new_url = response.headers["location"]
+                response = await client.post(new_url, json=payload, headers=headers)
+            response.raise_for_status()
+    except httpx.HTTPError as err:
+        raise HTTPException(
+            status_code=err.response.status_code,
+            detail=str(err),
+        ) from err
+    return response

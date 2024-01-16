@@ -153,6 +153,25 @@ services:
         env_file:
             - ./dotenv/dev.env
 
+    api.analyse.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run analyse
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/analyse/:/app/yimba_api/services/analyse
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8098:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
     api.params.io:
         build:
             context: .

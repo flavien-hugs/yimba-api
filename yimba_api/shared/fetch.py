@@ -18,6 +18,7 @@ class ServiceBaseUrl(YimbaBaseSettings):
     google: HttpUrl = Field(..., env="GOOGLE_BASE_URL")
     twitter: HttpUrl = Field(..., env="TWITTER_BASE_URL")
     facebook: HttpUrl = Field(..., env="FACEBOOK_BASE_URL")
+    analyse: HttpUrl = Field(..., env="ANALYSE_BASE_URL")
     instagram: HttpUrl = Field(..., env="INSTAGRAM_BASE_URL")
 
 
@@ -62,6 +63,7 @@ tiktok = ServiceFetch(str(baseUrl.tiktok), "tiktok")
 twitter = ServiceFetch(str(baseUrl.twitter), "twitter")
 faceook = ServiceFetch(str(baseUrl.facebook), "facebook")
 instagram = ServiceFetch(str(baseUrl.instagram), "instagram")
+analyse = ServiceFetch(str(baseUrl.analyse), "analyse")
 
 if __name__ == "__main__":
     import asyncio
