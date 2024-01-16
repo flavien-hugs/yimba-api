@@ -86,12 +86,6 @@ async def get_instagram_hashtag(
         ) from err
 
     for data in topsposts:
-        if post := model.InstagramInDB.find_one(
-            router.storage, {"data.id": data.get("id")}
-        ):
-            logger.info(f"Object with Id {post.id} already exists. Skipping.")
-            continue
-
         result = await model.InstagramInDB(data=data).save(router.storage)
         response = await crud.get(
             router.storage, model.InstagramInDB, result.inserted_id

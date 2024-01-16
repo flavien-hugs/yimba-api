@@ -77,12 +77,6 @@ async def get_tiktok_hashtag(
         ) from err
 
     for data in scraping:
-        if post := model.TiktokInDB.find_one(
-            router.storage, {"data.id": data.get("id")}
-        ):
-            logger.info(f"Object with Id {post.id} already exists. Skipping.")
-            continue
-
         result = await model.TiktokInDB(data=data).save(router.storage)
         response = await crud.get(router.storage, model.TiktokInDB, result.inserted_id)
         apc = analyzer.polarity_scores(response.data.get("text"))
