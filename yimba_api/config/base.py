@@ -1,6 +1,13 @@
 from enum import Enum
 
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings, BaseModel, Field
+
+
+class Cors(BaseModel):
+    allow_origins: list[str]
+    allow_methods: list[str]
+    allow_headers: list[str]
+    allow_credentials: bool
 
 
 class LogLevel(str, Enum):
@@ -25,3 +32,4 @@ class APIBaseSettings(YimbaBaseSettings):
     port: int = Field(9090, env="API_PORT")
     ip: str = Field(..., env="API_IP_ADDRESS")
     workers: int = Field(2, env="UVICORN_WORKERS")
+    cors: Cors = Field(..., env="BASE_CORS")
