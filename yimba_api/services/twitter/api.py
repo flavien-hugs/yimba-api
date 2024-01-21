@@ -83,9 +83,8 @@ async def get_twitter_hashtag(
         ) from err
 
     for data in scraping:
-        result = await model.TwitterInDB(data=data).save(router.storage)
-        response = await crud.get(router.storage, model.TwitterInDB, result.inserted_id)
-        apc = analyzer.polarity_scores(response.data.get("full_text"))
+        apc = analyzer.polarity_scores(data.get("full_text"))
+        result = await model.TwitterInDB(data=data, analyse=apc).save(router.storage)
         await service.analyse_post_text(
             {
                 "post_id": result.inserted_id,

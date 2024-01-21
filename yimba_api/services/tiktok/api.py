@@ -47,10 +47,7 @@ async def search(
 
     search_terms = map(slugify, query.split())
     search_filter = {
-        "$or": [
-            {"data.hashtags": {"$regex": query, "$options": "i"}}
-            for term in search_terms
-        ]
+        "$or": [{"data.hashtags": {"$regex": query, "$options": "i"}} for term in search_terms]
         + [{"data.text": {"$regex": query, "$options": "i"}} for term in search_terms]
     }
     items = model.TiktokInDB.find(router.storage, search_filter)
@@ -77,9 +74,8 @@ async def get_tiktok_hashtag(
         ) from err
 
     for data in scraping:
-        result = await model.TiktokInDB(data=data).save(router.storage)
-        response = await crud.get(router.storage, model.TiktokInDB, result.inserted_id)
-        apc = analyzer.polarity_scores(response.data.get("text"))
+        apc = analyzer.polarity_scores(data.get("text"))
+        result = await model.TiktokInDB(data=data, analyse=apc).save(router.storage)
         await service.analyse_post_text(
             {
                 "post_id": result.inserted_id,
