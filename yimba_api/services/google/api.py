@@ -77,9 +77,8 @@ async def get_google_hashtag(
         ) from err
 
     for data in organicresults:
-        result = await model.GoogleInDB(data=data).save(router.storage)
-        response = await crud.get(router.storage, model.GoogleInDB, result.inserted_id)
-        apc = analyzer.polarity_scores(response.data.get("description"))
+        apc = analyzer.polarity_scores(data.get("description"))
+        result = await model.GoogleInDB(data=data, analyse=apc).save(router.storage)
         await service.analyse_post_text(
             {
                 "post_id": result.inserted_id,

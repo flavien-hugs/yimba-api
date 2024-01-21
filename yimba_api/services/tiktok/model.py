@@ -5,6 +5,7 @@ from yimba_api import BaseMongoModel
 
 class Tiktok(BaseModel):
     data: Dict[str, Any] = None
+    analyse: Dict[str, Any] = None
 
 
 class TiktokInDB(BaseMongoModel, Tiktok):

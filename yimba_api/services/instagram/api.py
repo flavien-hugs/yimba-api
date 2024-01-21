@@ -86,11 +86,8 @@ async def get_instagram_hashtag(
         ) from err
 
     for data in topsposts:
-        result = await model.InstagramInDB(data=data).save(router.storage)
-        response = await crud.get(
-            router.storage, model.InstagramInDB, result.inserted_id
-        )
-        apc = analyzer.polarity_scores(response.data.get("caption"))
+        apc = analyzer.polarity_scores(data.get("caption"))
+        result = await model.InstagramInDB(data=data, analyse=apc).save(router.storage)
         await service.analyse_post_text(
             {
                 "post_id": result.inserted_id,

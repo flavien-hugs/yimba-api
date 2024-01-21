@@ -48,9 +48,7 @@ async def search(
 
     search_terms = map(slugify, query.split())
     search_filter = {
-        "$or": [
-            {"data.hashtag": {"$regex": term, "$options": "i"}} for term in search_terms
-        ]
+        "$or": [{"data.hashtag": {"$regex": term, "$options": "i"}} for term in search_terms]
         + [{"data.text": {"$regex": term, "$options": "i"}} for term in search_terms]
         + [{"data.postId": {"$regex": term, "$options": "i"}} for term in search_terms]
     }
@@ -58,9 +56,7 @@ async def search(
     return paginate([item async for item in items])
 
 
-@router.get(
-    "/{keyword}", summary="Get facebook hashtag", status_code=status.HTTP_200_OK
-)
+@router.get("/{keyword}", summary="Get facebook hashtag", status_code=status.HTTP_200_OK)
 async def get_facebook_hashtag(
     keyword: str,
     current_user: str = Security(AuthTokenBearer(allowed_role=["admin", "client"])),
@@ -80,11 +76,8 @@ async def get_facebook_hashtag(
         ) from err
 
     for data in scraping:
-        result = await model.FacebookInDB(data=data).save(router.storage)
-        response = await crud.get(
-            router.storage, model.FacebookInDB, result.inserted_id
-        )
-        apc = analyzer.polarity_scores(response.data.get("text"))
+        apc = analyzer.polarity_scores(data.get("text"))
+        result = await model.FacebookInDB(data=data, analyse=apc).save(router.storage)
         await service.analyse_post_text(
             {
                 "post_id": result.inserted_id,
