@@ -42,11 +42,7 @@ class FastYimbaAPI(FastAPI):
         super().__init__(*args, **kwargs)
         self.add_middleware(
             CORSMiddleware,
-            allow_origins=[
-                "http://localhost:3000",
-                "https://my.yimba.org",
-                "https://yimba.org",
-            ],
+            allow_origins=["*"],
             allow_credentials=True,
             allow_methods=["*"],
             allow_headers=["*"],
