@@ -1,11 +1,14 @@
 import logging
+from io import BytesIO
 from typing import Optional
 
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi import HTTPException, Query, Security, status
-from fastapi_pagination import paginate
 
 from slugify import slugify
+from wordcloud import WordCloud
+from fastapi_pagination import paginate
+
 from yimba_api.services.instagram import model
 from yimba_api.services import router_factory
 from yimba_api.shared import scrapper, crud, service
@@ -48,17 +51,10 @@ async def search(
     search_terms = map(slugify, query.split())
     search_filter = {
         "$or": [
-            {"data.topPosts.hashtags": {"$regex": query, "$options": "i"}}
+            {"data.hashtags": {"$regex": query, "$options": "i"}}
             for term in search_terms
         ]
-        + [
-            {"data.latestPosts.hashtags": {"$regex": query, "$options": "i"}}
-            for term in search_terms
-        ]
-        + [
-            {"data.searchTerm": {"$regex": query, "$options": "i"}}
-            for term in search_terms
-        ]
+        + [{"data.alt": {"$regex": query, "$options": "i"}} for term in search_terms]
     }
     items = model.InstagramInDB.find(router.storage, search_filter)
     return paginate([item async for item in items])
@@ -112,3 +108,79 @@ async def get_instagram_hashtag(
 )
 async def delete_instagram_information(id: str):
     return await crud.delete(router.storage, model.InstagramInDB, id)
+
+
+@router.get(
+    "/{keyword}/statistics",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
+    response_model=model.InstagramStatistic,
+    summary="Get instagram scrapper data statictics",
+    status_code=status.HTTP_200_OK,
+)
+async def statistic(keyword: str):
+    try:
+        search_filter = {
+            "$or": [
+                {"data.hashtags": {"$regex": keyword, "$options": "i"}},
+                {"data.alt": {"$regex": keyword, "$options": "i"}},
+            ]
+        }
+        instagram_data = model.InstagramInDB.find(router.storage, search_filter)
+        instagram_data_count = await model.InstagramInDB.count(
+            router.storage, search_filter
+        )
+
+        totals = {
+            "total_likes_count": 0,
+            "total_comments_count": 0,
+            "total_posts_count": instagram_data_count,
+        }
+
+        async for x in instagram_data:
+            totals["total_likes_count"] += x.data.get("likesCount", 0)
+            totals["total_comments_count"] += x.data.get("commentsCount", 0)
+
+        result = model.InstagramStatistic(**totals)
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+        ) from exc
+
+    return result
+
+
+@router.get(
+    "/{keyword}/cloudtags",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
+    summary="Generate a word cloud",
+    status_code=status.HTTP_200_OK,
+)
+async def generate_word_cloud(keyword: str):
+    try:
+        search_filter = {
+            "$or": [
+                {"data.hashtags": {"$regex": keyword, "$options": "i"}},
+                {"data.alt": {"$regex": keyword, "$options": "i"}},
+            ]
+        }
+        items = model.InstagramInDB.find(router.storage, search_filter)
+        text = ""
+        async for t in items:
+            text += t.data.get("hashtags", "") + " "
+
+        word_cloud = WordCloud(
+            collocations=False, background_color="white"
+        ).generate_from_text(text)
+        image = word_cloud.to_image()
+        image_bytes = BytesIO()
+        image.save(image_bytes, format="PNG")
+
+        body = BytesIO(image_bytes.getvalue())
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+        ) from exc
+
+    return StreamingResponse(body, media_type="image/png")

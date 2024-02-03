@@ -1,11 +1,14 @@
 import logging
+from io import BytesIO
 from typing import Optional
 
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi import HTTPException, Query, Security, status
-from fastapi_pagination import paginate
 
 from slugify import slugify
+from wordcloud import WordCloud
+from fastapi_pagination import paginate
+
 from yimba_api.services.tiktok import model
 from yimba_api.services import router_factory
 from yimba_api.shared import scrapper, crud, service
@@ -47,8 +50,15 @@ async def search(
 
     search_terms = map(slugify, query.split())
     search_filter = {
-        "$or": [{"data.hashtags": {"$regex": query, "$options": "i"}} for term in search_terms]
+        "$or": [
+            {"data.hashtags": {"$regex": query, "$options": "i"}}
+            for term in search_terms
+        ]
         + [{"data.text": {"$regex": query, "$options": "i"}} for term in search_terms]
+        + [
+            {"data.searchHashtag.name": {"$regex": query, "$options": "i"}}
+            for term in search_terms
+        ]
     }
     items = model.TiktokInDB.find(router.storage, search_filter)
     return paginate([item async for item in items])
@@ -100,3 +110,83 @@ async def get_tiktok_hashtag(
 )
 async def delete_tiktok_information(id: str):
     return await crud.delete(router.storage, model.TiktokInDB, id)
+
+
+@router.get(
+    "/{keyword}/statistics",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
+    response_model=model.TiktokStatistic,
+    summary="Get Tiktok scrapper data statictics",
+    status_code=status.HTTP_200_OK,
+)
+async def statistic(keyword: str):
+    try:
+        search_filter = {
+            "$or": [
+                {"data.searchHashtag.name": {"$regex": keyword, "$options": "i"}},
+                {"data.hashtags": {"$regex": keyword, "$options": "i"}},
+                {"data.text": {"$regex": keyword, "$options": "i"}},
+            ]
+        }
+        tiktok_data = model.TiktokInDB.find(router.storage, search_filter)
+        tiktok_data_count = await model.TiktokInDB.count(router.storage, search_filter)
+
+        totals = {
+            "total_likes_count": 0,
+            "total_shares_count": 0,
+            "total_views_count": 0,
+            "total_comments_count": 0,
+            "total_posts_count": tiktok_data_count,
+        }
+
+        async for x in tiktok_data:
+            totals["total_likes_count"] += x.data.get("diggCount", 0)
+            totals["total_shares_count"] += x.data.get("shareCount", 0)
+            totals["total_views_count"] += x.data.get("playCount", 0)
+            totals["total_comments_count"] += x.data.get("commentCount", 0)
+
+        result = model.TiktokStatistic(**totals)
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+        ) from exc
+
+    return result
+
+
+@router.get(
+    "/{keyword}/cloudtags",
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
+    summary="Generate a word cloud",
+    status_code=status.HTTP_200_OK,
+)
+async def generate_word_cloud(keyword: str):
+    try:
+        search_filter = {
+            "$or": [
+                {"data.searchHashtag.name": {"$regex": keyword, "$options": "i"}},
+                {"data.hashtags": {"$regex": keyword, "$options": "i"}},
+                {"data.text": {"$regex": keyword, "$options": "i"}},
+            ]
+        }
+        items = model.TiktokInDB.find(router.storage, search_filter)
+        text = ""
+        async for t in items:
+            text += t.data.get("text", "") + " "
+
+        word_cloud = WordCloud(
+            collocations=False, background_color="white"
+        ).generate_from_text(text)
+        image = word_cloud.to_image()
+        image_bytes = BytesIO()
+        image.save(image_bytes, format="PNG")
+
+        body = BytesIO(image_bytes.getvalue())
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)
+        ) from exc
+
+    return StreamingResponse(body, media_type="image/png")
