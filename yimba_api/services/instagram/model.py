@@ -8,5 +8,11 @@ class Instagram(BaseModel):
     analyse: Dict[str, Any] = None
 
 
+class InstagramStatistic(BaseModel):
+    total_likes_count: int = 0
+    total_comments_count: int = 0
+    total_posts_count: int = 0
+
+
 class InstagramInDB(BaseMongoModel, Instagram):
     ...

@@ -176,3 +176,7 @@ async def analyse_post_text(
             detail=str(err),
         ) from err
     return response
+
+
+async def get_counts_data(data_list, key):
+    return [x.data.get(key) async for x in data_list]
