@@ -97,6 +97,15 @@ class Youtube(APIBaseSettings):
     openapi_url: str = "/api/youtube/openapi.json"
 
 
+class Statistic(APIBaseSettings):
+    port: int = Field(..., env="STATISTIC_PORT")
+    host: str = Field(..., env="STATISTIC_HOST")
+    url: HttpUrl = Field(..., env="STATISTIC_BASE_URL")
+    docs_url: str = "/api/statistics/docs"
+    title: str = "Yimba API :: Statistic Service"
+    openapi_url: str = "/api/statistics/openapi.json"
+
+
 class Analyse(APIBaseSettings):
     port: int = Field(..., env="ANALYSE_PORT")
     host: str = Field(..., env="ANALYSE_HOST")
