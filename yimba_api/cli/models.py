@@ -12,3 +12,4 @@ class ServiceName(str, Enum):
     youtube = "youtube"
     facebook = "facebook"
     instagram = "instagram"
+    cloudtags = "cloudtags"
