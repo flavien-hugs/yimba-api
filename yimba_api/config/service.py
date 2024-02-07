@@ -106,6 +106,15 @@ class Statistic(APIBaseSettings):
     openapi_url: str = "/api/statistics/openapi.json"
 
 
+class Cloudtags(APIBaseSettings):
+    port: int = Field(..., env="CLOUDTAGS_PORT")
+    host: str = Field(..., env="CLOUDTAGS_HOST")
+    url: HttpUrl = Field(..., env="CLOUDTAGS_BASE_URL")
+    docs_url: str = "/api/cloudtags/docs"
+    title: str = "Yimba API :: Cloudtags Service"
+    openapi_url: str = "/api/cloudtags/openapi.json"
+
+
 class Analyse(APIBaseSettings):
     port: int = Field(..., env="ANALYSE_PORT")
     host: str = Field(..., env="ANALYSE_HOST")
@@ -137,5 +146,7 @@ def get(name: str) -> APIBaseSettings:
             return Instagram()
         case "analyse":
             return Analyse()
+        case "cloudtags":
+            return Cloudtags()
         case _:
             return
