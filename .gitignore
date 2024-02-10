@@ -48,4 +48,5 @@ cython_debug/
 
 # PyCharm
 .idea/
+.idea/misc.xml
 deploy
