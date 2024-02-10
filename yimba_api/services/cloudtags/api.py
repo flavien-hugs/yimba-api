@@ -1,8 +1,10 @@
 import logging
+import base64
 from io import BytesIO
 from fastapi import Security, HTTPException, status
 from fastapi.responses import StreamingResponse
 
+from slugify import slugify
 from wordcloud import WordCloud
 from yimba_api.services import router_factory
 from yimba_api.shared.authentication import AuthTokenBearer
@@ -35,30 +37,32 @@ async def generate_cloudtags(
     try:
         text = ""
 
+        search_terms = map(slugify, keyword.split())
+
         # Récupération des données TikTok
         tiktok_data = tiktok.model.TiktokInDB.find(
-            router.storage, {"data.text": {"$regex": keyword, "$options": "i"}}
+            router.storage, {"data.text": {"$regex": term, "$options": "i"} for term in search_terms}
         )
         async for t in tiktok_data:
             text += t.data.get("text", "") + " "
 
         # Récupération des données Instagram
         instagram_data = instagram.model.InstagramInDB.find(
-            router.storage, {"data.caption": {"$regex": keyword, "$options": "i"}}
+            router.storage, {"data.caption": {"$regex": text, "$options": "i"} for term in search_terms}
         )
         async for t in instagram_data:
             text += t.data.get("caption", "") + t.data.get("alt", "") + " "
 
         # Récupération des données Facebook
         facebook_data = facebook.model.FacebookInDB.find(
-            router.storage, {"data.text": {"$regex": keyword, "$options": "i"}}
+            router.storage, {"data.text": {"$regex": term, "$options": "i"} for term in search_terms}
         )
         async for t in facebook_data:
             text += t.data.get("text", "") + " "
 
         # Récupération des données Youtube
         youtube_data = youtube.model.YoutubeInDB.find(
-            router.storage, {"data.text": {"$regex": keyword, "$options": "i"}}
+            router.storage, {"data.text": {"$regex": term, "$options": "i"} for term in search_terms}
         )
         async for t in youtube_data:
             text += t.data.get("text", "") + t.data.get("title", "") + " "
@@ -69,9 +73,7 @@ async def generate_cloudtags(
         image = word_cloud.to_image()
         image_bytes = BytesIO()
         image.save(image_bytes, format="PNG")
-
         body = BytesIO(image_bytes.getvalue())
-
         result = StreamingResponse(body, media_type="image/png")
 
     except Exception as exc:
