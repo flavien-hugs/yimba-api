@@ -41,28 +41,32 @@ async def generate_cloudtags(
 
         # Récupération des données TikTok
         tiktok_data = tiktok.model.TiktokInDB.find(
-            router.storage, {"data.text": {"$regex": term, "$options": "i"} for term in search_terms}
+            router.storage,
+            {"data.text": {"$regex": term, "$options": "i"} for term in search_terms}
         )
         async for t in tiktok_data:
             text += t.data.get("text", "") or ""
 
         # Récupération des données Instagram
         instagram_data = instagram.model.InstagramInDB.find(
-            router.storage, {"data.caption": {"$regex": text, "$options": "i"} for term in search_terms}
+            router.storage,
+            {"data.caption": {"$regex": term, "$options": "i"} for term in search_terms}
         )
         async for t in instagram_data:
             text += (t.data.get("caption", "") or "") + (t.data.get("alt", "") or "")
 
         # Récupération des données Facebook
         facebook_data = facebook.model.FacebookInDB.find(
-            router.storage, {"data.text": {"$regex": term, "$options": "i"} for term in search_terms}
+            router.storage,
+            {"data.text": {"$regex": term, "$options": "i"} for term in search_terms},
         )
         async for t in facebook_data:
             text += t.data.get("text", "") or ""
 
         # Récupération des données Youtube
         youtube_data = youtube.model.YoutubeInDB.find(
-            router.storage, {"data.text": {"$regex": term, "$options": "i"} for term in search_terms}
+            router.storage,
+            {"data.text": {"$regex": term, "$options": "i"} for term in search_terms}
         )
         async for t in youtube_data:
             text += (t.data.get("text", "") or "") + (t.data.get("title", "") or "")
@@ -70,11 +74,11 @@ async def generate_cloudtags(
         word_cloud = WordCloud(
             collocations=False, background_color="white"
         ).generate_from_text(text)
-        image = word_cloud.to_image()
         image_bytes = BytesIO()
-        image.save(image_bytes, format="PNG")
-        body = BytesIO(image_bytes.getvalue())
-        result = StreamingResponse(body, media_type="image/png")
+        word_cloud.to_image().save(image_bytes, format="PNG")
+        base64_image = base64.b64encode(image_bytes.getvalue()).decode("utf-8")
+
+        result = f"<img src='data:image/png;base64,{base64_image}'>"
 
     except Exception as exc:
         raise HTTPException(
