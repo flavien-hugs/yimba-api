@@ -1,5 +1,16 @@
 FROM python:3.10-buster as builder
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libcairo2 \
+        libpango-1.0-0 \
+        libpangocairo-1.0-0 \
+        libgdk-pixbuf2.0-0 \
+        libffi-dev \
+        shared-mime-info \
+        wkhtmltopdf \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN pip install poetry==1.4.2
 
 ENV POETRY_NO_INTERACTION=1 \

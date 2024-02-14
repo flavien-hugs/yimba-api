@@ -10,6 +10,7 @@ class ServiceName(str, Enum):
     analyse = "analyse"
     twitter = "twitter"
     youtube = "youtube"
+    rapport = "rapport"
     facebook = "facebook"
     instagram = "instagram"
     cloudtags = "cloudtags"

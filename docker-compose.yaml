@@ -210,6 +210,25 @@ services:
         env_file:
             - ./dotenv/dev.env
 
+    api.rapport.io:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        command: yimba service run rapport
+        environment:
+            LOG_LEVEL: ${BASE_LOG_LEVEL}
+            ENV: ${APP_ENV}
+        volumes:
+            - ./yimba_api/services/rapport/:/app/yimba_api/services/rapport
+        depends_on:
+            - mongo
+            - redis
+        ports:
+            - "8101:${API_PORT}"
+        env_file:
+            - ./dotenv/dev.env
+
     mongo:
         image: mongo:jammy
         restart: unless-stopped
