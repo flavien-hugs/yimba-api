@@ -19,6 +19,7 @@ class ServiceBaseUrl(YimbaBaseSettings):
     twitter: HttpUrl = Field(..., env="TWITTER_BASE_URL")
     facebook: HttpUrl = Field(..., env="FACEBOOK_BASE_URL")
     analyse: HttpUrl = Field(..., env="ANALYSE_BASE_URL")
+    rapport: HttpUrl = Field(..., env="RAPPORT_BASE_URL")
     cloudtags: HttpUrl = Field(..., env="CLOUDTAGS_BASE_URL")
     instagram: HttpUrl = Field(..., env="INSTAGRAM_BASE_URL")
 
@@ -65,6 +66,7 @@ twitter = ServiceFetch(str(baseUrl.twitter), "twitter")
 faceook = ServiceFetch(str(baseUrl.facebook), "facebook")
 instagram = ServiceFetch(str(baseUrl.instagram), "instagram")
 analyse = ServiceFetch(str(baseUrl.analyse), "analyse")
+rapport = ServiceFetch(str(baseUrl.rapport), "rapport")
 cloudtags = ServiceFetch(str(baseUrl.cloudtags), "cloudtags")
 
 if __name__ == "__main__":

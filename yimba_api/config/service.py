@@ -115,6 +115,15 @@ class Cloudtags(APIBaseSettings):
     openapi_url: str = "/api/cloudtags/openapi.json"
 
 
+class Rapport(APIBaseSettings):
+    port: int = Field(..., env="RAPPORT_PORT")
+    host: str = Field(..., env="RAPPORT_HOST")
+    url: HttpUrl = Field(..., env="RAPPORT_BASE_URL")
+    docs_url: str = "/api/rapport/docs"
+    title: str = "Yimba API :: Rapport Service"
+    openapi_url: str = "/api/rapport/openapi.json"
+
+
 class Analyse(APIBaseSettings):
     port: int = Field(..., env="ANALYSE_PORT")
     host: str = Field(..., env="ANALYSE_HOST")
@@ -146,6 +155,8 @@ def get(name: str) -> APIBaseSettings:
             return Instagram()
         case "analyse":
             return Analyse()
+        case "rapport":
+            return Rapport()
         case "cloudtags":
             return Cloudtags()
         case _:
