@@ -6,7 +6,119 @@
         <title>Rapport sur le mot clé {{ page_title }}</title>
         <meta name="description" content="">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+        <style>
+            body {
+                margin: 0;
+                padding: 2rem;
+                font-family: system-ui, sans-serif;
+            }
+
+            .content {
+                margin: auto;
+                padding: 25px;
+                background-color: #fff;
+                max-width: 45rem;
+                margin-inline: auto;
+            }
+
+            .bg-image {
+                background-size: cover;
+                padding-top: calc(100% - 500px);
+                padding-bottom: calc(100% - 500px);
+                margin-bottom: 30px;
+            }
+
+            .bg-image h2 {
+                display: block;
+                font-size: 2em;
+                margin-block-start: 0.67em;
+                margin-block-end: 0.67em;
+                margin-inline-start: 0px;
+                margin-inline-end: 0px;
+                font-weight: bold;
+                text-align: center;
+                text-transform: uppercase;
+            }
+
+            @keyframes p {
+                from {
+                    --p: 0;
+                }
+            }
+
+            @media (prefers-color-scheme: dark) {
+                body {
+                    background-color: #d5d5d5;
+                    color: #090909;
+                }
+            }
+
+            .container {
+                margin: 0 auto;
+            }
+
+            .image-container {
+              margin: 10px;
+            }
+
+
+            .image-container img {
+                object-fit: cover;
+            }
+
+            .graphique {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .barre {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-bottom: 10px;
+                width: 200px;
+                height: 50px;
+                border: 1px solid #ddd;
+            }
+
+            .valeur {
+                font-weight: bold;
+                font-size: 1.2em;
+                padding: 5px 5px;
+            }
+
+            .libele {
+                text-transform: uppercase;
+                font-size: 0.8em;
+            }
+
+            .hashtags h2 {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+
+            .hashtags ul {
+                display: flex;
+                flex-wrap: wrap;
+                list-style: none;
+                padding: 0;
+            }
+
+            .hashtags li {
+                margin-bottom: 5px;
+                padding: 5px;
+            }
+
+            .grid-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+
+            .grid-item {
+                display: contents
+            }
+        </style>
     </head>
 
     <body>
