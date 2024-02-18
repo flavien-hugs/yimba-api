@@ -121,10 +121,17 @@ async def get_yt_analyse(keyword: str):
     }
 
     async for x in youtube_data:
-        totals["yt_total_likes_count"] += x.data.get("likes", 0)
-        totals["yt_total_shares_count"] += x.data.get("shareCount", 0)
-        totals["yt_total_views_count"] += x.data.get("viewCount", 0)
-        totals["yt_total_comments_count"] += x.data.get("commentsCount", 0)
+        if (likes_count := x.data.get("likes", 0)) is not None:
+            totals["yt_total_likes_count"] += likes_count
+
+        if (share_count := x.data.get("shareCount", 0)) is not None:
+            totals["yt_total_shares_count"] += share_count
+
+        if (views_count := x.data.get("viewCount", 0)) is not None:
+            totals["yt_total_views_count"] += views_count
+
+        if (comments_count := x.data.get("commentsCount", 0)) is not None:
+            totals["yt_total_comments_count"] += comments_count
 
     return totals
 
