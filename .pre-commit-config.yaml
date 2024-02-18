@@ -47,5 +47,5 @@ repos:
       args:
         - "--max-line-length=100"
         - "--select=B,C,E,F,W,T4,B9"
-        - "--ignore=B006,B008,B010,B903,E203,E231,B907,W503"
+        - "--ignore=B006,B008,B010,B035,B903,E203,E231,B907,W503"
         - "--builtins=F821, F405"

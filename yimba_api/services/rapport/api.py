@@ -1,17 +1,15 @@
 import logging
-from fastapi import Request, Security, HTTPException, status
-from fastapi.responses import FileResponse, Response
+
+from fastapi import Request, status
 from fastapi.templating import Jinja2Templates
 
-import pdfkit
 from yimba_api.services import router_factory
-from yimba_api.shared.authentication import AuthTokenBearer
+from yimba_api.shared import utils
 
 logger = logging.getLogger(__name__)
 
 TEMPLATE_DIR = str("yimba_api/templates")
 templates = Jinja2Templates(directory=TEMPLATE_DIR)
-config = pdfkit.configuration(wkhtmltopdf="/usr/local/bin/wkhtmltopdf")
 
 router = router_factory(
     prefix="/api/rapport",
@@ -25,18 +23,35 @@ def ping():
     return {"message": "pong !"}
 
 
-@router.get("/pdf")
-async def generate_pdf(request: Request):
-    context = {"request": request, "page_title": "pdf"}
-    html_content = templates.TemplateResponse("pdf/pdf.html", context)
+@router.get(
+    "/{keyword}",
+    summary="Generate rapport",
+    status_code=status.HTTP_200_OK,
+)
+async def generate_rapport(request: Request, keyword: str):
+    context = {
+        "request": request,
+        "page_title": keyword.upper(),
+    }
 
-    # Generate PDF from HTML content
-    pdf = pdfkit.from_string(html_content, "output.pdf", configuration=config)
+    fb_graphics = await utils.fb_graphic(keyword)
+    fb_statistic = await utils.get_fb_analyse(keyword)
+    fb_process_text = await utils.process_text_facebook(keyword)
+    fb_cloudtags_image = await utils.generate_cloud_tags_facebook(keyword)
 
-    # Return the generated PDF as a response
-    file_resp = FileResponse(pdf, media_type="application/pdf", filename="rapport.pdf")
-    print("file response --> ", file_resp)
+    tk_statistic = await utils.get_titktok_analyse(keyword)
+    inst_statistic = await utils.get_insta_analyse(keyword)
+    yt_statistic = await utils.get_yt_analyse(keyword)
 
-    response = Response(content=pdf, media_type="application/pdf")
-    response.headers["Content-Disposition"] = "attachment; filename=rapport.pdf"
-    return response
+    dicts = [
+        fb_process_text,
+        fb_cloudtags_image,
+        inst_statistic,
+        tk_statistic,
+        fb_graphics,
+        fb_statistic,
+        yt_statistic,
+    ]
+    for d in dicts:
+        context.update(d)
+    return templates.TemplateResponse("pdf/pdf.html", context)
