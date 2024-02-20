@@ -1,69 +1,247 @@
 <!DOCTYPE html>
 <html lang="fr">
     <head>
-      <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <title>Pdf Format</title>
-      <meta name="description" content="">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}">
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Rapport sur le mot clé {{ page_title }}</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {
+                margin: 0;
+                padding: 2rem;
+                font-family: system-ui, sans-serif;
+            }
+
+            .content {
+                margin: auto;
+                padding: 25px;
+                background-color: #fff;
+                max-width: 45rem;
+                margin-inline: auto;
+            }
+
+            .bg-image {
+                background-size: cover;
+                padding-top: calc(100% - 500px);
+                padding-bottom: calc(100% - 500px);
+                margin-bottom: 30px;
+            }
+
+            .bg-image h2 {
+                display: block;
+                font-size: 2em;
+                margin-block-start: 0.67em;
+                margin-block-end: 0.67em;
+                margin-inline-start: 0px;
+                margin-inline-end: 0px;
+                font-weight: bold;
+                text-align: center;
+                text-transform: uppercase;
+            }
+
+            @keyframes p {
+                from {
+                    --p: 0;
+                }
+            }
+
+            @media (prefers-color-scheme: dark) {
+                body {
+                    background-color: #d5d5d5;
+                    color: #090909;
+                }
+            }
+
+            .container {
+                margin: 0 auto;
+            }
+
+            .image-container {
+              margin: 10px;
+            }
+
+
+            .image-container img {
+                object-fit: cover;
+            }
+
+            .graphique {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .barre {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin-bottom: 10px;
+                width: 200px;
+                height: 50px;
+                border: 1px solid #ddd;
+            }
+
+            .valeur {
+                font-weight: bold;
+                font-size: 1.2em;
+                padding: 5px 5px;
+            }
+
+            .libele {
+                text-transform: uppercase;
+                font-size: 0.8em;
+            }
+
+            .hashtags h2 {
+                font-size: 1.5em;
+                margin-bottom: 10px;
+            }
+
+            .hashtags ul {
+                display: flex;
+                flex-wrap: wrap;
+                list-style: none;
+                padding: 0;
+            }
+
+            .hashtags li {
+                margin-bottom: 5px;
+                padding: 5px;
+            }
+
+            .grid-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+
+            .grid-item {
+                display: contents
+            }
+        </style>
     </head>
 
     <body>
         <div class="content">
-            <h1>Simple CSS Bar Chart</h1>
+            <div class="bg-image" style="background-image:url('{{ url_for('static', path='img/bg.png')}}')">
+                <h2>{{ page_title }}</h2>
+            </div>
 
-        <div class="simple-bar-chart">
+            <hr>
 
-          <div class="item" style="--clr: #5EB344; --val: 80">
-            <div class="label">Label 1</div>
-            <div class="value">80%</div>
-          </div>
+            <div class="container">
+                <h3>Statistiques</h3>
+                <div class="graphique">
+                    <div class="image-container">
+                        <img src="{{ fb_graphic_img }}" alt="{{ page_title }}">
+                    </div>
+                </div>
+            </div>
 
-          <div class="item" style="--clr: #FCB72A; --val: 50">
-            <div class="label">Label 2</div>
-            <div class="value">50%</div>
-          </div>
+            <hr>
 
-          <div class="item" style="--clr: #F8821A; --val: 100">
-            <div class="label">Label 3</div>
-            <div class="value">100%</div>
-          </div>
+            <div class="container">
+                <h3>Mentions par plateformes</h3>
 
-          <div class="item" style="--clr: #E0393E; --val: 15">
-            <div class="label">Label 4</div>
-            <div class="value">15%</div>
-          </div>
+                <h3>#Facebook</h3>
+                <div class="grid-container">
+                    <div class="grid-item">
+                        <div class="barre">
+                            <span class="valeur">{{ fb_total_likes_count }}</span>
+                            <span class="libele">likes</span>
+                        </div>
+                        <div class="barre">
+                            <span class="valeur">{{ fb_total_shares_count }}</span>
+                            <span class="libele">partages</span>
+                        </div>
+                        <div class="barre">
+                            <span class="valeur">{{ fb_total_views_count }}</span>
+                            <span class="libele">vues</span>
+                        </div>
+                        <div class="barre">
+                            <span class="valeur">{{ fb_total_comments_count }}</span>
+                            <span class="libele">commentaires</span>
+                        </div>
+                    </div>
+                </div>
 
-          <div class="item" style="--clr: #963D97; --val: 1">
-            <div class="label">Label 5</div>
-            <div class="value">1%</div>
-          </div>
+                <h3>#Tiktok</h3>
+                <div class="grid-container">
+                    <div class="grid-item">
+                        <div class="barre">
+                            <span class="valeur">{{ tk_total_likes_count }}</span>
+                            <span class="libele">likes</span>
+                        </div>
+                        <div class="barre">
+                            <span class="valeur">{{ tk_total_shares_count }}</span>
+                            <span class="libele">partages</span>
+                        </div>
+                        <div class="barre">
+                            <span class="valeur">{{ tk_total_views_count }}</span>
+                            <span class="libele">vues</span>
+                        </div>
+                        <div class="barre">
+                            <span class="valeur">{{ tk_total_comments_count }}</span>
+                            <span class="libele">commentaires</span>
+                        </div>
+                    </div>
+                </div>
 
-          <div class="item" style="--clr: #069CDB; --val: 90">
-            <div class="label">Label 6</div>
-            <div class="value">90%</div>
-          </div>
+                <h3>#Youtube</h3>
+                <div class="grid-container">
+                    <div class="grid-item">
+                        <div class="barre">
+                            <span class="valeur">{{ yt_total_likes_count }}</span>
+                            <span class="libele">likes</span>
+                        </div>
+                        <div class="barre">
+                            <span class="valeur">{{ yt_total_shares_count }}</span>
+                            <span class="libele">partages</span>
+                        </div>
+                        <div class="barre">
+                            <span class="valeur">{{ yt_total_views_count }}</span>
+                            <span class="libele">vues</span>
+                        </div>
+                        <div class="barre">
+                            <span class="valeur">{{ yt_total_comments_count }}</span>
+                            <span class="libele">commentaires</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>#Instagram</h3>
+                <div class="grid-container">
+                    <div class="grid-item">
+                        <div class="barre">
+                            <span class="valeur">{{ in_total_likes_count }}</span>
+                            <span class="libele">likes</span>
+                        </div>
+                        <div class="barre">
+                            <span class="valeur">{{ in_total_comments_count }}</span>
+                            <span class="libele">commentaires</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="hashtags">
+                <h2>Répartition par hashtag</h2>
+                <ul>
+                    {% for key in fb_keywords %}
+                    <li>#{{ key }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <hr>
+
+            <div class="footer">
+                <div class="logo">
+                    <img width="70px" src="{{ url_for('static', path='img/logo.png') }}" alt="logo">
+                </div>
+            </div>
         </div>
-        <br>
-        <hr>
-        <h1>Circle PIE</h1>
-        <div class="">
-            <div class="pie animate no-round" style="--p:80;--c:blue;"> 80%</div>
-            <div class="pie animate no-round" style="--p:80;--c:rgb(77, 255, 0);"> 80%</div>
-            <div class="pie animate no-round" style="--p:80;--c:rgb(218, 99, 24);"> 80%</div>
-            <div class="pie animate no-round" style="--p:80;--c:rgb(0, 217, 255);"> 80%</div>
-            <div class="pie animate no-round" style="--p:80;--c:rgb(255, 0, 242);"> 80%</div>
-        </div>
-
-        <br>
-        <hr>
-        <h1>Circle PIE</h1>
-        <div class="piex">
-          <div class="html">19% HTML</div>
-          <div class="css">81% CSS</div>
-        </div>
-       </div>
-        <script src="" async defer></script>
     </body>
 </html>

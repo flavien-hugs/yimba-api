@@ -1,138 +1,111 @@
-.simple-bar-chart{
-    --line-count: 10;
-    --line-color: currentcolor;
-    --line-opacity: 0.25;
-    --item-gap: 2%;
-    --item-default-color: #060606;
-
-    height: 10rem;
-    display: grid;
-    grid-auto-flow: column;
-    gap: var(--item-gap);
-    align-items: end;
-    padding-inline: var(--item-gap);
-    --padding-block: 1.5rem; /*space for labels*/
-    padding-block: var(--padding-block);
-    position: relative;
-    isolation: isolate;
-  }
-
-  .simple-bar-chart::after{
-    content: "";
-    position: absolute;
-    inset: var(--padding-block) 0;
-    z-index: -1;
-    --line-width: 1px;
-    --line-spacing: calc(100% / var(--line-count));
-    background-image: repeating-linear-gradient(to top, transparent 0 calc(var(--line-spacing) - var(--line-width)), var(--line-color) 0 var(--line-spacing));
-    box-shadow: 0 var(--line-width) 0 var(--line-color);
-    opacity: var(--line-opacity);
-  }
-  .simple-bar-chart > .item{
-    height: calc(1% * var(--val));
-    background-color: var(--clr, var(--item-default-color));
-    position: relative;
-    animation: item-height 1s ease forwards
-  }
-  @keyframes item-height { from { height: 0 } }
-
-  .simple-bar-chart > .item > * { position: absolute; text-align: center }
-  .simple-bar-chart > .item > .label { inset: 100% 0 auto 0 }
-  .simple-bar-chart > .item > .value { inset: auto 0 100% 0 }
-
-  @property --p{
-    syntax: '<number>';
-    inherits: true;
-    initial-value: 0;
-  }
-
-  .pie {
-    --p:20;
-    --b:22px;
-    --c:darkred;
-    --w:150px;
-
-    width:var(--w);
-    aspect-ratio:1;
-    position:relative;
-    display:inline-grid;
-    margin:5px;
-    place-content:center;
-    font-size:25px;
-    font-weight:bold;
-    font-family:sans-serif;
-  }
-  .pie:before,
-  .pie:after {
-    content:"";
-    position:absolute;
-    border-radius:50%;
-  }
-  .pie:before {
-    inset:0;
-    background:
-      radial-gradient(farthest-side,var(--c) 98%,#0000) top/var(--b) var(--b) no-repeat,
-      conic-gradient(var(--c) calc(var(--p)*1%),#0000 0);
-    -webkit-mask:radial-gradient(farthest-side,#0000 calc(99% - var(--b)),#000 calc(100% - var(--b)));
-            mask:radial-gradient(farthest-side,#0000 calc(99% - var(--b)),#000 calc(100% - var(--b)));
-  }
-  .pie:after {
-    inset:calc(50% - var(--b)/2);
-    background:var(--c);
-    transform:rotate(calc(var(--p)*3.6deg)) translateY(calc(50% - var(--w)/2));
-  }
-  .animate {
-    animation:p 1s .5s both;
-  }
-  .no-round:before {
-    background-size:0 0,auto;
-  }
-  .no-round:after {
-    content:none;
-  }
-  @keyframes p {
-    from{--p:0}
-  }
-  .piex {
-    margin: 5vmin auto;
-    border-radius: 50%;
-    width: 300px;
-    height: 300px;
-    overflow: hidden;
-    background: linear-gradient(-21deg, #2196f3 50%, transparent 50%), linear-gradient(to right, #2196f3 50%, #ffc107 50%);
-  }
-
-  .html {
-    margin: 20vmin 0 0 50vmin;
-  }
-
-  .css {
-    margin: 33vmin;
-  }
-  /* demo */
-  body {
+body {
     margin: 0;
     padding: 2rem;
-    color: #1D1E22;
-    background-color: #f0f0f0;
     font-family: system-ui, sans-serif;
-    text-align: center;
-  }
+}
 
-  @media (prefers-color-scheme: dark) {
-    body {
-      background-color: #d5d5d5;
-      color: #090909;
-    }
-  }
-
-  body > * { max-width: 45rem; margin-inline: auto}
-
-  /* Content PDF */
-  .content{
+.content {
     margin: auto;
-    width: 21cm;
-    height: 30cm;
     padding: 25px;
-    background-color: #f0f0f0;
-  }
+    background-color: #fff;
+    max-width: 45rem;
+    margin-inline: auto;
+}
+
+.bg-image {
+    background-size: cover;
+    padding-top: calc(100% - 500px);
+    padding-bottom: calc(100% - 500px);
+    margin-bottom: 30px;
+}
+
+.bg-image h2 {
+    display: block;
+    font-size: 2em;
+    margin-block-start: 0.67em;
+    margin-block-end: 0.67em;
+    margin-inline-start: 0px;
+    margin-inline-end: 0px;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+@keyframes p {
+    from {
+        --p: 0;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #d5d5d5;
+        color: #090909;
+    }
+}
+
+.container {
+    margin: 0 auto;
+}
+
+.image-container {
+  margin: 10px;
+}
+
+
+.image-container img {
+    object-fit: cover;
+}
+
+.graphique {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.barre {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+    width: 200px;
+    height: 50px;
+    border: 1px solid #ddd;
+}
+
+.valeur {
+    font-weight: bold;
+    font-size: 1.2em;
+    padding: 5px 5px;
+}
+
+.libele {
+    text-transform: uppercase;
+    font-size: 0.8em;
+}
+
+.hashtags h2 {
+    font-size: 1.5em;
+    margin-bottom: 10px;
+}
+
+.hashtags ul {
+    display: flex;
+    flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+}
+
+.hashtags li {
+    margin-bottom: 5px;
+    padding: 5px;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+.grid-item {
+    display: contents
+}
