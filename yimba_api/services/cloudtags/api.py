@@ -25,7 +25,7 @@ def ping():
 
 @router.get(
     "/{keyword}",
-    # dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
+    dependencies=[Security(AuthTokenBearer(allowed_role=["admin", "client"]))],
     status_code=status.HTTP_200_OK,
     summary="Generate cloud tags",
 )
