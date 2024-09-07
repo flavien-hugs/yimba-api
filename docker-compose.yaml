@@ -1,229 +1,154 @@
 version: "3.9"
 
 services:
-    api.auth.io:
+    project:
         build:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        command: yimba service run auth
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
+        command: poetry run yimba service run project
         volumes:
-            - ./yimba_api/services/auth/:/app/yimba_api/services/auth
+            - ./src/services/routers/project/:/app/src/services/routers/project
         depends_on:
             - mongo
-            - redis
-        ports:
-            - "8090:${API_PORT}"
-        env_file:
-            - ./dotenv/dev.env
-
-    api.project.io:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        restart: unless-stopped
-        command: yimba service run project
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
-        volumes:
-            - ./yimba_api/services/project/:/app/yimba_api/services/project
-        depends_on:
-            - mongo
-            - redis
         ports:
             - "8091:${API_PORT}"
         env_file:
             - ./dotenv/dev.env
 
-    api.facebook.io:
+    facebook:
         build:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        command: yimba service run facebook
+        command: poetry run yimba service run facebook
         environment:
             LOG_LEVEL: ${BASE_LOG_LEVEL}
             ENV: ${APP_ENV}
         volumes:
-            - ./yimba_api/services/facebook/:/app/yimba_api/services/facebook
+            - ./src/services/routers/facebook/:/app/src/services/routers/facebook
         depends_on:
             - mongo
-            - redis
         ports:
             - "8092:${API_PORT}"
         env_file:
             - ./dotenv/dev.env
 
-    api.tiktok.io:
+    tiktok:
         build:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        command: yimba service run tiktok
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
+        command: poetry run yimba service run tiktok
         volumes:
-            - ./yimba_api/services/tiktok/:/app/yimba_api/services/tiktok
+            - ./src/services/routers/tiktok/:/app/src/services/routers/tiktok
         depends_on:
             - mongo
-            - redis
         ports:
             - "8093:${API_PORT}"
         env_file:
             - ./dotenv/dev.env
 
-    api.twitter.io:
+    twitter:
         build:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        command: yimba service run twitter
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
+        command: poetry run yimba service run twitter
         volumes:
-            - ./yimba_api/services/twitter/:/app/yimba_api/services/twitter
+            - ./src/services/routers/twitter/:/app/src/services/routers/twitter
         depends_on:
             - mongo
-            - redis
         ports:
             - "8094:${API_PORT}"
         env_file:
             - ./dotenv/dev.env
 
-    api.instagram.io:
+    instagram:
         build:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        command: yimba service run instagram
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
+        command: poetry run yimba service run instagram
         volumes:
-            - ./yimba_api/services/instagram/:/app/yimba_api/services/instagram
+            - ./src/services/routers/instagram/:/app/src/services/routers/instagram
         depends_on:
             - mongo
-            - redis
         ports:
             - "8095:${API_PORT}"
         env_file:
             - ./dotenv/dev.env
 
-    api.google.io:
+    google:
         build:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        command: yimba service run google
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
+        command: poetry run yimba service run google
         volumes:
-            - ./yimba_api/services/google/:/app/yimba_api/services/google
+            - ./src/services/routers/google/:/app/src/services/routers/google
         depends_on:
             - mongo
-            - redis
         ports:
             - "8096:${API_PORT}"
         env_file:
             - ./dotenv/dev.env
 
-    api.youtube.io:
+    youtube:
         build:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        command: yimba service run youtube
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
+        command: poetry run yimba service run youtube
         volumes:
-            - ./yimba_api/services/youtube/:/app/yimba_api/services/youtube
+            - ./src/services/routers/youtube/:/app/src/services/routers/youtube
         depends_on:
             - mongo
-            - redis
         ports:
             - "8097:${API_PORT}"
         env_file:
             - ./dotenv/dev.env
 
-    api.analyse.io:
+    analyse:
         build:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        command: yimba service run analyse
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
+        command: poetry run yimba service run analyse
         volumes:
-            - ./yimba_api/services/analyse/:/app/yimba_api/services/analyse
+            - ./src/services/routers/analyse/:/app/src/services/routers/analyse
         depends_on:
             - mongo
-            - redis
         ports:
             - "8098:${API_PORT}"
         env_file:
             - ./dotenv/dev.env
 
-    api.params.io:
+    cloudtags:
         build:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        command: yimba service run params
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
+        command: poetry run yimba service run cloudtags
         volumes:
-            - ./yimba_api/services/params/:/app/yimba_api/services/params
+            - ./src/services/routers/cloudtags/:/app/src/services/routers/cloudtags
         depends_on:
             - mongo
-            - redis
-        ports:
-            - "8099:${API_PORT}"
-        env_file:
-            - ./dotenv/dev.env
-
-    api.cloudtags.io:
-        build:
-            context: .
-            dockerfile: Dockerfile
-        restart: unless-stopped
-        command: yimba service run cloudtags
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
-        volumes:
-            - ./yimba_api/services/cloudtags/:/app/yimba_api/services/cloudtags
-        depends_on:
-            - mongo
-            - redis
         ports:
             - "8100:${API_PORT}"
         env_file:
             - ./dotenv/dev.env
 
-    api.rapport.io:
+    rapport:
         build:
             context: .
             dockerfile: Dockerfile
         restart: unless-stopped
-        command: yimba service run rapport
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
+        command: poetry run yimba service run rapport
         volumes:
-            - ./yimba_api/services/rapport/:/app/yimba_api/services/rapport
+            - ./src/services/routers/rapport/:/app/src/services/routers/rapport
         depends_on:
             - mongo
-            - redis
         ports:
             - "8101:${API_PORT}"
         env_file:
@@ -232,23 +157,16 @@ services:
     mongo:
         image: mongo:jammy
         restart: unless-stopped
+        environment:
+            MONGO_DB: "${MONGO_DB}"
+            MONGO_USER: "${MONGO_USER}"
+            MONGO_PASSWORD: "${MONGO_PASSWORD}"
+            MONGO_INITDB_ROOT_USERNAME: "${MONGO_USER}"
+            MONGO_INITDB_ROOT_PASSWORD: "${MONGO_PASSWORD}"
         ports:
-          - "27020:27017"
+          - "27022:${MONGO_PORT}"
         volumes:
-            - mongo_data:/data/db
-        env_file:
-            - ./dotenv/mongo.env
-
-    redis:
-        image: redis:alpine
-        restart: unless-stopped
-        command: redis-server --loglevel ${REDIS_LOG_LEVEL} --requirepass ${REDIS_PASSWORD}
-        volumes:
-            - redis_data:/data
-        env_file:
-            - ./dotenv/redis.env
+            - yimba_apifydb_data:/data/db
 
 volumes:
-    redis_data: {}
-    mongo_data: {}
-    minio_storage: {}
+    yimba_apifydb_data: {}

@@ -13,7 +13,7 @@ help: ## Show this help
 
 .PHONY: run
 run: ## Run
-	docker compose up -d --build
+	docker compose up
 
 .PHONY: volume
 volume:	## Remove volumes unusing
