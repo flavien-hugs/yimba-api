@@ -1,4 +1,3 @@
-from enum import StrEnum
 from functools import lru_cache
 
 from pydantic import Field, PositiveInt
@@ -8,9 +7,14 @@ from pydantic_settings import BaseSettings
 class YimbaBaseSettings(BaseSettings):
     APP_ENV: str = Field("DEV", alias="APP_ENV")
 
+    # MODELS NAMES CONFIG
+    PROJECT_MODEL_NAME: str = Field(..., alias="PROJECT_MODEL_NAME")
+    ANALYSE_MODEL_NAME: str = Field(..., alias="ANALYSE_MODEL_NAME")
+
     # AUTH ENDPOINT CONFIG
-    API_AUTH_URL_BASE: str = Field(..., alias="PERMS_DB_COLLECTION")
-    API_AUTH_CHECK_ACCESS_ENDPOINT: str = Field(..., alias="API_AUTH_CHECK_ACCESS_ENDPOINT")
+    API_AUTH_URL_BASE: str = Field(..., alias="API_AUTH_URL_BASE")
+    CHECK_ACCESS_URL: str = Field(..., alias="CHECK_ACCESS_URL")
+    CHECK_USERINFO_URL: str = Field(..., alias="CHECK_USERINFO_URL")
 
     # MONGODB CONFIG
     PERMS_DB_COLLECTION: str = Field(..., alias="PERMS_DB_COLLECTION")

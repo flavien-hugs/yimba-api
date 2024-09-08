@@ -1,165 +1,114 @@
 import logging
-from io import BytesIO
-from typing import Optional
+from asyncio import gather
+from itertools import chain
+from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi import BackgroundTasks, Depends, HTTPException, Query, status
 from fastapi_pagination import paginate
-from slugify import slugify
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from wordcloud import WordCloud
+from pydantic import PositiveInt
 
+from src.common.helpers.exceptions import CustomHTTException
 from src.common.helpers.permissions import CheckAccessAllow
-from src.services import models, schemas
-from src.shared import crud, scrapper
+from src.services import router_factory, schemas
+from src.shared import crud, utils
+from src.shared.auth_handler import CheckUserInfoHandler
+from src.shared.error_codes import YimbaApifyErrorCode
+from src.shared.scrapper import scraper
 from src.shared.url_patterns import CHECK_ACCESS_ALLOW_URL
 
 logger = logging.getLogger(__name__)
-analyzer = SentimentIntensityAnalyzer()
 
-router = APIRouter(
+router = router_factory(
     prefix="/instagram",
     tags=["CRUD"],
     responses={404: {"description": "Not found"}},
 )
 
 
-@router.get(
-    "",
-    response_model=crud.customize_page(models.Instagram),
-    dependencies=[Depends(CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["instagram:can-display-data-from-instagram"]))],
-    summary="Search instagram data by hashtag",
-    status_code=status.HTTP_200_OK,
-)
-async def search(
-    query: Optional[str] = Query(
-        None,
-        alias="search",
-        description="Search by items: hashtag, text",
-    )
-):
-    if query is None:
-        items = models.Instagram.find(router.storage, {})
-        return paginate([item async for item in items])
-
-    search_terms = map(slugify, query.split())
-    search_filter = {
-        "$or": [{"data.hashtags": {"$regex": query, "$options": "i"}} for term in search_terms]
-        + [{"data.alt": {"$regex": query, "$options": "i"}} for term in search_terms]
-    }
-    items = models.Instagram.find(router.storage, search_filter)
-    return paginate([item async for item in items])
-
-
-@router.get(
-    "/{keyword}",
-    dependencies=[Depends(CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["instagram:can-extract-data-from-instagram"]))],
-    summary="Get CollecteInstagramData hashtag",
-    status_code=status.HTTP_200_OK,
-)
-async def get_instagram_hashtag(keyword: str):
-    """
-    Grattez et téléchargez des posts, profils, lieux, hashtags, photos et commentaires
-    Instagram. Obtenez des données d'CollecteInstagramData à l'aide d'un hashtag CollecteInstagramData
-    ou de requêtes de recherche.
-    """
+async def fetch_instagram_data(keyword: str, size: Optional[PositiveInt] = 20):
     try:
-        instagram_data = await scrapper.scrapping_instagram_data(keyword)
-        topsposts = instagram_data[0].get("topPosts", "")
-    except Exception as err:
-        logger.error(f"An error occured: {err}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)) from err
-
-    for data in topsposts:
-        apc = analyzer.polarity_scores(data.get("caption"))
-        result = await models.Instagram(data=data, analyse=apc).save(router.storage)
-        # await service.analyse_post_text(
-        #     {
-        #         "post_id": result.inserted_id,
-        #         "neutre": apc.get("neu"),
-        #         "negatif": apc.get("neg"),
-        #         "positif": apc.get("pos"),
-        #         "compound": apc.get("compound"),
-        #     },
-        #     current_user,
-        # )
-
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Scrapping successful!"})
-
-
-@router.delete(
-    "/{id}",
-    dependencies=[Depends(CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["instagram:can-delete-data-from-instagram"]))],
-    summary="Remove Instagram information",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-async def delete_instagram_information(id: str):
-    return await crud.delete(router.storage, models.Instagram, id)
-
-
-@router.get(
-    "/{keyword}/statistics",
-    dependencies=[Depends(CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["instagram:can-read-scrapper-instagram-data-statistics"]))],
-    response_model=schemas.CollectStatistic,
-    summary="Get instagram scrapper data statictics",
-    status_code=status.HTTP_200_OK,
-)
-async def statistic(keyword: str):
-    try:
-        search_filter = {
-            "$or": [
-                {"data.hashtags": {"$regex": keyword, "$options": "i"}},
-                {"data.alt": {"$regex": keyword, "$options": "i"}},
-            ]
-        }
-        instagram_data = models.Instagram.find(router.storage, search_filter)
-        instagram_data_count = await models.Instagram.count(router.storage, search_filter)
-
-        totals = {
-            "total_likes_count": 0,
-            "total_comments_count": 0,
-            "total_posts_count": instagram_data_count,
-        }
-
-        async for x in instagram_data:
-            totals["total_likes_count"] += x.data.get("likesCount", 0)
-            totals["total_comments_count"] += x.data.get("commentsCount", 0)
-
-        result = schemas.CollectStatistic(**totals)
-
-    except Exception as exc:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
+        result = await scraper.scrape_instagram(keyword=keyword, results_limit=size)
+    except HTTPException as exc:
+        raise CustomHTTException(
+            code_error=YimbaApifyErrorCode.BAD_REQUEST, message_error=str(exc), status_code=status.HTTP_400_BAD_REQUEST
+        ) from exc
 
     return result
 
 
+async def split_data(data: List[Dict[str, Any]], bg: BackgroundTasks) -> List[Dict[str, Any]]:
+    async def process_post(post: Dict[str, Any]) -> None:
+        post_id = post.get("id")
+        text = post.get("caption", "")
+        if post_id and text:
+            await utils.analyze_data(bg, post_id, text)
+
+    tasks = []
+    result_data = []
+
+    for item in data:
+        top_posts = item.get("topPosts", [])
+        latest_posts = item.get("latestPosts", [])
+
+        posts = list(chain(top_posts, latest_posts))
+        result_data.extend(posts)
+
+        tasks.extend(process_post(post) for post in posts)
+
+    await gather(*tasks)
+
+    return result_data
+
+
 @router.get(
-    "/{keyword}/cloudtags",
-    dependencies=[Depends(CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["instagram:can-read-cloudtags"]))],
-    summary="Generate a word cloud",
+    "",
+    response_model=crud.customize_page(dict),
+    dependencies=[
+        Depends(CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["instagram:can-extract-data-from-instagram"]))
+    ],
+    summary="Search instagram data by hashtag",
     status_code=status.HTTP_200_OK,
 )
-async def generate_word_cloud(keyword: str):
-    try:
-        search_filter = {
-            "$or": [
-                {"data.hashtags": {"$regex": keyword, "$options": "i"}},
-                {"data.alt": {"$regex": keyword, "$options": "i"}},
-            ]
-        }
-        items = models.Instagram.find(router.storage, search_filter)
-        text = ""
-        async for t in items:
-            text += t.data.get("hashtags", "") + " "
+async def search(
+    bg: BackgroundTasks,
+    keyword: str = Query(),
+    user_info: dict = Depends(CheckUserInfoHandler()),
+    size: Optional[PositiveInt] = Query(10, description="Number of results per page"),
+):
+    user = user_info.get("user_info", {}).get("_id")
+    await utils.validate_project(keyword, user)
 
-        word_cloud = WordCloud(collocations=False, background_color="white").generate_from_text(text)
-        image = word_cloud.to_image()
-        image_bytes = BytesIO()
-        image.save(image_bytes, format="PNG")
+    instagram_data = await fetch_instagram_data(keyword, size)
 
-        body = BytesIO(image_bytes.getvalue())
+    result_data = await split_data(instagram_data, bg)
 
-    except Exception as exc:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(exc)) from exc
+    return paginate(result_data)
 
-    return StreamingResponse(body, media_type="image/png")
+
+@router.get(
+    "/{keyword}/statistics",
+    dependencies=[
+        Depends(
+            CheckAccessAllow(
+                url=CHECK_ACCESS_ALLOW_URL, permissions=["instagram:can-read-scrapper-instagram-data-statistics"]
+            )
+        )
+    ],
+    response_model=schemas.CollectStatistic,
+    summary="Get instagram scrapper data statictics",
+    status_code=status.HTTP_200_OK,
+)
+async def statistic(keyword: str, bg: BackgroundTasks, size: Optional[PositiveInt] = Query(10)):
+    await utils.validate_project(keyword)
+    instagram_data = await fetch_instagram_data(keyword, size)
+    result_data = await split_data(instagram_data, bg)
+
+    totals = {"likesCount": 0, "sharesCount": 0, "viewsCount": 0, "commentsCount": 0}
+
+    for x in result_data:
+        totals["likesCount"] += x.get("likesCount", 0)
+        totals["sharesCount"] += x.get("sharesCount", 0)
+        totals["viewsCount"] += x.get("viewsCount", 0)
+        totals["commentsCount"] += x.get("commentsCount", 0)
+
+    return schemas.CollectStatistic(**totals)

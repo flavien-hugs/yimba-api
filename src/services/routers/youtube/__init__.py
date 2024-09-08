@@ -29,16 +29,16 @@ app: FastYimbaAPI = FastYimbaAPI(
     lifespan=lifespan, title=SETTINGS.title, docs_url=SETTINGS.docs_url, openapi_url=SETTINGS.openapi_url
 )
 
-add_pagination(app)
-app.include_router(router)
-setup_exception_handlers(app)
-
 
 @app.get("/", include_in_schema=False)
 async def read_root() -> RedirectResponse:
     return RedirectResponse(url=f"{SETTINGS.docs_url}")
 
 
-@app.get("/@ping", tags=["DEFAULT"])
+@app.get(f"{router.prefix}/@ping", tags=["DEFAULT"])
 def ping():
     return {"message": "pong !"}
+
+add_pagination(app)
+app.include_router(router)
+setup_exception_handlers(app)

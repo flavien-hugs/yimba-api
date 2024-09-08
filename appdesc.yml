@@ -9,40 +9,30 @@
             desc:
                 fr: "Peut créer un nouveau projet de collecte de donnée"
                 en: "Can create new project"
-                
+
         -
             code: "project:can-read-project"
             desc:
                 fr: "Peut lire les informations sur un projet"
                 en: "Can read information on a project"
-        
+
         -
             code: "project:can-update-project"
             desc:
                 fr: "Peut mettre à jour les informations d'un projet"
                 en: "Can update information on a project"
-        
+
         -
             code: "project:can-delete-project"
             desc:
                 fr: "Peut supprimer un projet"
                 en: "Can delete a project"
-        
-        -
-            code: "analyse:can-make-analyse"
-            desc:
-                fr: "Peut faire une analyse d'un/des mot(s) clé(s)"
-                en: "Can analyze key word(s)"
+
         -
             code: "analyse:can-display-analyse"
             desc:
                 fr: "Peut afficher une analyse d'un/des mot(s) clé(s)"
                 en: "Can display an analysis of keyword(s)"
-        -
-            code: "analyse:can-delete-analyse"
-            desc:
-                fr: "Peut supprimer une analyse d'un/des mot(s) clé(s)"
-                en: "Can delete an analysis of keyword(s)"
         -
             code: "cloudtags:can-generete-cloudtags"
             desc:
@@ -60,11 +50,6 @@
                 un ou plusieurs mot clé (hashtag)"
                 en: "Can extract data from hundreds of Facebook posts using one or more hashtags"
         -
-            code: "facebook:can-delete-data-from-facebook"
-            desc:
-                fr: "Peut supprimer les données collectées par Facebook"
-                en: "Can delete data collected by Facebook"
-        -
             code: "facebook:can-read-scrapper-facebook-data-statistics"
             desc:
                 fr: "Obtenir des statistiques sur les données de Facebook scrapper"
@@ -75,28 +60,11 @@
                 fr: "Peut générer un nuage de mots des mots clés Facebook"
                 en: "Can generate a word cloud of Facebook keywords"
         -
-            code: "google:can-display-data-from-google"
-            desc:
-                fr: "Peut afficher des données provenant de Google"
-                en: "Can display data from Google"
-        -
             code: "google:can-extract-data-from-google-search-engine"
             desc:
                 fr: "Peut extraire des données provenant des pages de résultats des moteurs de
                 recherche ColllectGoogleData (SERP)"
                 en: "Can extract data from Google search engine results pages (SERPs)"
-        -
-            code: "google:can-delete-data-from-google-search-engine"
-            desc:
-                fr: "Peut supprimer les données collectées par Google"
-                en: "Can delete data collected by Google"
-        
-        -
-            code: "instagram:can-display-data-from-instagram"
-            desc:
-                fr: "Peut afficher des données provenant du service Instagram"
-                en: "Can display data from service Instagram"
-        
         -
             code: "instagram:can-extract-data-from-instagram"
             desc:
@@ -104,34 +72,16 @@
                 Instagram"
                 en: "Can extract and download Instagram posts, profiles, locations, hashtags, photos and comments"
         -
-            code: "instagram:can-delete-data-from-instagram"
-            desc:
-                fr: "Peut supprimer les données collectées par Instagram"
-                en: "Can delete data collected by Instagram"
-        
-        -
             code: "instagram:can-read-scrapper-instagram-data-statistics"
             desc:
                 fr: "Obtenir des statistiques sur les données Instagramm scrapper"
                 en: "Get Instagram scrapper data statictics"
-        
-        -
-            code: "instagram:can-generate-word-cloud-instagram-keywords"
-            desc:
-                fr: "Peut générer un nuage de mots des mots clés Instagram"
-                en: "Can generate a word cloud of Instagram keywords"
-        
         -
             code: "report:can-generate-report"
             desc:
                 fr: "Peut générer un rapport à partir d'un mot clé"
                 en: "Can generate a report from a keyword"
-        
-        -
-            code: "tiktok:can-display-tiktok-data"
-            desc:
-                fr: "Peut afficher ou faire des recherche sur Tiktok par mot clés"
-                en: "Can display or search on Tiktok by hashtag"
+
         -
             code: "tiktok:can-extract-data-from-tiktok-posts"
             desc:
@@ -143,37 +93,20 @@
                     including posts, total number of likes, name, nickname, number of comments, shares, followers,
                     people followed, etc."
         -
-            code: "tiktok:can-delete-data-from-tiktok"
-            desc:
-                fr: "Peut supprimer les données collectées par Tiktok"
-                en: "Can delete data collected by Tiktok"
-        -
             code: "tiktok:can-read-scrapper-tiktok-data-statistics"
             desc:
                 fr: "Obtenir des statistiques sur les données de Tiktok scrapper"
                 en: "Get Tiktok scrapper data statictics"
         -
-            code: "tiktok:can-generate-word-cloud-tiktok-keywords"
+            code: "twitter:can-read-scrapper-twitter-data-statistics"
             desc:
-                fr: "Peut générer un nuage de mots des mots clés Tiktok"
-                en: "Can generate a word cloud of Tiktok keywords"
-        
-        -
-            code: "twitter:can-display-twitter-data"
-            desc:
-                fr: "Peut afficher ou faire des recherche sur Twitter par mot clés"
-                en: "Can display or search on Twitter by hashtag"
+                fr: "Obtenir des statistiques sur les données de Twitter scrapper"
+                en: "Get Twitter scrapper data statictics"
         -
             code: "twitter:can-extract-data-from-twitter-posts"
             desc:
                 fr: "Peut récupérer les tweets de n'importe quel profil d'utilisateur de Twitter"
                 en: "Can retrieve tweets from any Twitter user profile"
-        -
-            code: "twitter:can-delete-data-from-twitter"
-            desc:
-                fr: "Peut supprimer les données collectées par Twitter"
-                en: "Can delete data collected by Twitter"
-        
         -
             code: "youtube:can-display-youtube-data"
             desc:
@@ -186,17 +119,7 @@
                 un ou plusieurs mot clé (hashtag)"
                 en: "Can extract data from hundreds of Youtube posts using one or more hashtags"
         -
-            code: "youtube:can-delete-data-from-youtube"
-            desc:
-                fr: "Peut supprimer les données collectées par Youtube"
-                en: "Can delete data collected by Youtube"
-        -
             code: "youtube:can-read-scrapper-youtube-data-statistics"
             desc:
                 fr: "Obtenir des statistiques sur les données de Youtube scrapper"
                 en: "Get Youtube scrapper data statictics"
-        -
-            code: "youtube:can-generate-word-cloud-youtube-keywords"
-            desc:
-                fr: "Peut générer un nuage de mots des mots clés Youtube"
-                en: "Can generate a word cloud of Youtube keywords"

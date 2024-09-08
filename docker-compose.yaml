@@ -22,9 +22,6 @@ services:
             dockerfile: Dockerfile
         restart: unless-stopped
         command: poetry run yimba service run facebook
-        environment:
-            LOG_LEVEL: ${BASE_LOG_LEVEL}
-            ENV: ${APP_ENV}
         volumes:
             - ./src/services/routers/facebook/:/app/src/services/routers/facebook
         depends_on:

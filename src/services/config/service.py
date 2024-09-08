@@ -138,4 +138,4 @@ def get(name: str) -> APIBaseSettings:
         case "cloudtags":
             return Cloudtags()
         case _:
-            return _
+            raise ValueError(f"Unknown API name: {name}")

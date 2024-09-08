@@ -56,7 +56,7 @@ jobs:
                   echo "No valid tag found for branch $BRANCH_NAME, exiting..."
                   exit 1
                 fi
-                
+
                 echo "docker_tag_name=$DOCKER_TAG_NAME" >> $GITHUB_OUTPUT
 
                 echo "Building Docker image with tag $DOCKER_TAG_NAME ..."

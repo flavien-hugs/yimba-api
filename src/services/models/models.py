@@ -5,12 +5,15 @@ from beanie.odm.actions import EventTypes
 from pymongo import IndexModel, TEXT
 from slugify import slugify
 
+from src.services.config.base import settings
 from src.services.schemas import CollectData, CreateAnalyse, CreateProject
 from .mixins import TimestampModel
 
 
 class Analyse(Document, CreateAnalyse, TimestampModel):
-    pass
+
+    class Settings:
+        name = settings.ANALYSE_MODEL_NAME
 
 
 class Facebook(Document, CollectData, TimestampModel):
@@ -42,11 +45,11 @@ class Project(Document, CreateProject, TimestampModel):
     slug: Optional[Indexed(str, unique=True, sparse=True)] = None
 
     class Settings:
+        name = settings.PROJECT_MODEL_NAME
         indexes = [
             IndexModel(
                 keys=[
                     ("name", TEXT),
-                    ("description", TEXT),
                     ("slug", TEXT),
                 ]
             )

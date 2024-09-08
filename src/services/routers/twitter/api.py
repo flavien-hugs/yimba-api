@@ -1,20 +1,22 @@
 import logging
 from typing import Optional
 
-from fastapi import Depends, HTTPException, Query, status
-from fastapi.responses import JSONResponse
+from fastapi import BackgroundTasks, Depends, HTTPException, Query, status
 from fastapi_pagination import paginate
-from slugify import slugify
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from pydantic import PositiveInt
 
+from src.common.helpers.exceptions import CustomHTTException
 from src.common.helpers.permissions import CheckAccessAllow
-from src.services import models
+from src.services import schemas
 from src.services import router_factory
-from src.shared import crud, scrapper
+from src.shared import crud, utils
+from src.shared.auth_handler import CheckUserInfoHandler
+from src.shared.error_codes import YimbaApifyErrorCode
+from src.shared.scrapper import scraper
 from src.shared.url_patterns import CHECK_ACCESS_ALLOW_URL
 
 logger = logging.getLogger(__name__)
-analyzer = SentimentIntensityAnalyzer()
+
 
 router = router_factory(
     prefix="/twitter",
@@ -23,76 +25,71 @@ router = router_factory(
 )
 
 
+async def fetch_twitter_data(keyword: str, size: Optional[PositiveInt] = 10):
+    try:
+        result = await scraper.scrape_twitter(keyword=keyword, tweets_desired=size)
+    except HTTPException as exc:
+        raise CustomHTTException(
+            code_error=YimbaApifyErrorCode.BAD_REQUEST, message_error=str(exc), status_code=status.HTTP_400_BAD_REQUEST
+        ) from exc
+
+    return result
+
+
 @router.get(
     "",
-    response_model=crud.customize_page(models.Twitter),
+    response_model=crud.customize_page(dict),
     dependencies=[
-        Depends(CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["twitter:can-display-twitter-data"]))],
+        Depends(
+            CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["twitter:can-extract-data-from-twitter-posts"])
+        )
+    ],
     summary="Search Twitter by hashtag",
     status_code=status.HTTP_200_OK,
 )
 async def search(
-    query: Optional[str] = Query(
-        None,
-        alias="search",
-        description="Search by items: hashtag, text",
-    )
+    bg: BackgroundTasks,
+    keyword: str = Query(),
+    user_info: dict = Depends(CheckUserInfoHandler()),
+    size: Optional[PositiveInt] = Query(10, description="Number of results per page"),
 ):
-    if query is None:
-        items = models.Twitter.find(router.storage, {})
-        return paginate([item async for item in items])
+    user = user_info.get("user_info", {}).get("_id")
+    await utils.validate_project(keyword, user)
 
-    search_terms = map(slugify, query.split())
-    search_filter = {
-        "$or": [{"data.hashtags": {"$regex": query, "$options": "i"}} for term in search_terms]
-               + [{"data.full_text": {"$regex": query, "$options": "i"}} for term in search_terms]
-    }
-    items = models.Twitter.find(router.storage, search_filter)
-    return paginate([item async for item in items])
+    result = await fetch_twitter_data(keyword, size)
+
+    # for data in result:
+    #     post_id = data.get("full_text")
+    #     text = data.get("full_text", "")
+    #     await utils.analyze_data(bg, post_id, text)
+
+    return paginate(result)
 
 
 @router.get(
-    "/{keyword}",
-    dependencies=[Depends(
-        CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["twitter:can-extract-data-from-twitter-posts"]))],
-    summary="Get Twitter hashtag",
+    "/{keyword}/statistics",
+    dependencies=[
+        Depends(
+            CheckAccessAllow(
+                url=CHECK_ACCESS_ALLOW_URL, permissions=["twitter:can-read-scrapper-twitter-data-statistics"]
+            )
+        )
+    ],
+    response_model=schemas.CollectStatistic,
+    summary="Get Twitter scrapper data statictics",
     status_code=status.HTTP_200_OK,
 )
-async def get_twitter_hashtag(keyword: str):
-    """
-    Récupérez les tweets de n'importe quel profil d'utilisateur de Twitter.
-    Cette API Twitter récupère les hashtags, fils de discussion,
-    réponses, followers, images, vidéos, statistiques et l'historique de Twitter.
-    """
-    try:
-        scraping = await scrapper.scrapping_twitter_data(keyword)
-    except Exception as err:
-        logger.error(f"An error occured: {err}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)) from err
+async def calculate_stat(keyword: str, size: Optional[PositiveInt] = Query(10)):
+    await utils.validate_project(keyword)
 
-    for data in scraping:
-        apc = analyzer.polarity_scores(data.get("full_text"))
-        result = await models.Twitter(data=data, analyse=apc).save(router.storage)
-        # await service.analyse_post_text(
-        #     {
-        #         "post_id": result.inserted_id,
-        #         "neutre": apc.get("neu"),
-        #         "negatif": apc.get("neg"),
-        #         "positif": apc.get("pos"),
-        #         "compound": apc.get("compound"),
-        #     },
-        #     current_user,
-        # )
+    result = await fetch_twitter_data(keyword, size)
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content={"message": "Scrapping successful!"})
+    totals = {"likesCount": 0, "sharesCount": 0, "viewsCount": 0, "commentsCount": 0}
 
+    for x in result:
+        totals["likesCount"] += x.get("diggCount", 0)
+        totals["sharesCount"] += x.get("shareCount", 0)
+        totals["viewsCount"] += x.get("playCount", 0)
+        totals["commentsCount"] += x.get("commentCount", 0)
 
-@router.delete(
-    "/{id}",
-    dependencies=[
-        Depends(CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["twitter:can-delete-data-from-twitter"]))],
-    summary="Remove Twitter information",
-    status_code=status.HTTP_204_NO_CONTENT,
-)
-async def delete_twitter_information(id: str):
-    return await crud.delete(router.storage, models.Twitter, id)
+    return schemas.CollectStatistic(**totals)

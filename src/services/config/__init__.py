@@ -1,4 +1,1 @@
-from .base import (  # noqa: F401
-    APIBaseSettings,
-    YimbaBaseSettings
-)
+from .base import APIBaseSettings, YimbaBaseSettings  # noqa: F401

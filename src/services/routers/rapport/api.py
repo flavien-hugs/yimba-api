@@ -22,10 +22,7 @@ router = router_factory(
 
 @router.get(
     "/{keyword}",
-    dependencies=[Depends(CheckAccessAllow(
-        url=CHECK_ACCESS_ALLOW_URL,
-        permissions=["report:can-generate-report"]
-    ))],
+    dependencies=[Depends(CheckAccessAllow(url=CHECK_ACCESS_ALLOW_URL, permissions=["report:can-generate-report"]))],
     summary="Generate report",
     status_code=status.HTTP_200_OK,
 )

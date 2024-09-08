@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel, PositiveInt
+from pydantic import BaseModel
 from typing import Dict, Any
 
 
@@ -9,11 +9,21 @@ class CollectData(BaseModel):
 
 
 class CollectStatistic(BaseModel):
-    total_likes_count: Optional[PositiveInt] = 0
-    total_shares_count: Optional[PositiveInt] = 0
-    total_views_count: Optional[PositiveInt] = 0
-    total_comments_count: Optional[PositiveInt] = 0
-    total_posts_count: Optional[PositiveInt] = 0
+    likesCount: Optional[int] = 0
+    sharesCount: Optional[int] = 0
+    viewsCount: Optional[int] = 0
+    commentsCount: Optional[int] = 0
+
+
+class FacebookResponse(CollectStatistic):
+    id: str
+    postId: str
+    feedbackId: str
+    user: Dict[str, Any]
+    text: str
+    url: str
+    date: str
+    hashtag: str
 
 
 class CreateAnalyse(BaseModel):
@@ -26,4 +36,3 @@ class CreateAnalyse(BaseModel):
 
 class CreateProject(BaseModel):
     name: str
-    description: Optional[str] = None

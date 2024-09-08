@@ -14,10 +14,7 @@ logging.basicConfig(format="%(message)s", level=logging.INFO)
 async def startup_db_client(app: FastYimbaAPI, document_models: List[Type[Document]]):
     client = await mongodb_client(settings.MONGODB_URI)
     app.mongo_db_client = client
-    await init_beanie(
-        database=client[settings.MONGO_DB],
-        document_models=document_models
-    )
+    await init_beanie(database=client[settings.MONGO_DB], document_models=document_models)
 
     logger.info("--> Database init successfully !")
 

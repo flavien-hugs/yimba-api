@@ -1,223 +1,53 @@
-import base64
-import io
+from enum import StrEnum
+from typing import Optional
 
-import matplotlib.pyplot as plt
+from fastapi import BackgroundTasks, status
 from slugify import slugify
-from wordcloud import WordCloud
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-from src.services import models
-from src.services.routers import facebook, instagram, tiktok, youtube
+from src.common.helpers.exceptions import CustomHTTException
+from src.services import models, schemas
+from src.shared.error_codes import YimbaApifyErrorCode
 
-
-async def collection_keyword(keyword: str, model, storage, search) -> str:
-    text = ""
-    search_terms = map(slugify, keyword.split())
-    items = model.find(
-        storage,
-        {f"data.{search}": {"$regex": term, "$options": "i"} for term in search_terms},
-    )
-    async for t in items:
-        text += t.data.get(f"{search}", "") or ""
-    return text
+analyzer = SentimentIntensityAnalyzer()
 
 
-async def collect_keyword(keyword: str) -> str:
-    text = ""
-
-    # Récupération des données TikTok
-    tiktok_data = await collection_keyword(keyword, models.Tiktok, tiktok.api.router.storage, "text")
-    text += tiktok_data
-
-    # Récupération des données CollecteInstagramData
-    instagram_data = await collection_keyword(keyword, models.Instagram, instagram.api.router.storage, "caption")
-    text += instagram_data
-
-    # Récupération des données CollectFacebookData
-    facebook_data = await collection_keyword(keyword, models.Facebook, facebook.api.router.storage, "text")
-    text += facebook_data
-
-    # Récupération des données CollectYoutubeData
-    youtube_data = await collection_keyword(keyword, models.Youtube, youtube.api.router.storage, "text")
-    text += youtube_data
-
-    return text
+async def validate_project(keyword: str, user: Optional[str] = None):
+    query = {"slug": slugify(keyword)}
+    if user:
+        query["user._id"] = user
+    if not await models.Project.find_one(query).exists():
+        raise CustomHTTException(
+            code_error=YimbaApifyErrorCode.DOCUMENT_NOT_FOUND,
+            message_error=f"Project with name {keyword} not found",
+            status_code=status.HTTP_404_NOT_FOUND,
+        )
 
 
-async def get_fb_analyse(keyword: str):
-    search_filter = {
-        "$or": [
-            {"data.hashtag": {"$regex": keyword, "$options": "i"}},
-            {"data.text": {"$regex": keyword, "$options": "i"}},
-        ]
-    }
-    facebook_data = models.Facebook.find(facebook.api.router.storage, search_filter)
-
-    totals = {
-        "fb_total_likes_count": 0,
-        "fb_total_shares_count": 0,
-        "fb_total_views_count": 0,
-        "fb_total_comments_count": 0,
-    }
-
-    async for x in facebook_data:
-        totals["fb_total_likes_count"] += x.data.get("likesCount", 0)
-        totals["fb_total_shares_count"] += x.data.get("sharesCount", 0)
-        totals["fb_total_views_count"] += x.data.get("viewsCount", 0)
-        totals["fb_total_comments_count"] += x.data.get("commentsCount", 0)
-
-    return totals
+async def save_analysis(analysis: schemas.CreateAnalyse):
+    await models.Analyse(**analysis.model_dump()).create()
 
 
-async def get_titktok_analyse(keyword: str):
-    search_filter = {
-        "$or": [
-            {"data.searchHashtag.name": {"$regex": keyword, "$options": "i"}},
-            {"data.hashtags": {"$regex": keyword, "$options": "i"}},
-            {"data.text": {"$regex": keyword, "$options": "i"}},
-        ]
-    }
-    tiktok_data = models.Tiktok.find(tiktok.api.router.storage, search_filter)
+async def analyze_data(bg: BackgroundTasks, post_id: str, text: str = ""):
+    if not post_id:
+        return
 
-    totals = {
-        "tk_total_likes_count": 0,
-        "tk_total_shares_count": 0,
-        "tk_total_views_count": 0,
-        "tk_total_comments_count": 0,
-    }
+    if await models.Analyse.find_one({"post_id": post_id}).exists():
+        return
 
-    async for x in tiktok_data:
-        totals["tk_total_likes_count"] += x.data.get("diggCount", 0)
-        totals["tk_total_shares_count"] += x.data.get("shareCount", 0)
-        totals["tk_total_views_count"] += x.data.get("playCount", 0)
-        totals["tk_total_comments_count"] += x.data.get("commentCount", 0)
+    apc = analyzer.polarity_scores(text)
 
-    return totals
-
-
-async def get_yt_analyse(keyword: str):
-    search_filter = {
-        "$or": [
-            {"data.title": {"$regex": keyword, "$options": "i"}},
-            {"data.text": {"$regex": keyword, "$options": "i"}},
-        ]
-    }
-    youtube_data = models.Youtube.find(youtube.api.router.storage, search_filter)
-
-    totals = {
-        "yt_total_likes_count": 0,
-        "yt_total_shares_count": 0,
-        "yt_total_views_count": 0,
-        "yt_total_comments_count": 0,
-    }
-
-    async for x in youtube_data:
-        if (likes_count := x.data.get("likes", 0)) is not None:
-            totals["yt_total_likes_count"] += likes_count
-
-        if (share_count := x.data.get("shareCount", 0)) is not None:
-            totals["yt_total_shares_count"] += share_count
-
-        if (views_count := x.data.get("viewCount", 0)) is not None:
-            totals["yt_total_views_count"] += views_count
-
-        if (comments_count := x.data.get("commentsCount", 0)) is not None:
-            totals["yt_total_comments_count"] += comments_count
-
-    return totals
-
-
-async def get_insta_analyse(keyword: str):
-    search_filter = {
-        "$or": [
-            {"data.hashtags": {"$regex": keyword, "$options": "i"}},
-            {"data.alt": {"$regex": keyword, "$options": "i"}},
-        ]
-    }
-    insta_data = models.Instagram.find(instagram.api.router.storage, search_filter)
-
-    totals = {"in_total_likes_count": 0, "in_total_comments_count": 0}
-
-    async for x in insta_data:
-        totals["in_total_likes_count"] += x.data.get("likesCount", 0)
-        totals["in_total_comments_count"] += x.data.get("commentsCount", 0)
-
-    return totals
-
-
-async def fb_graphic(keyword: str):
-    fb_analyse = await get_fb_analyse(keyword)
-    tk_analyse = await get_titktok_analyse(keyword)
-    in_analyse = await get_insta_analyse(keyword)
-    yt_analyse = await get_yt_analyse(keyword)
-
-    labels = ["Likes", "Partages", "Vues", "Commentaires"]
-
-    likes = (
-        in_analyse.get("in_total_likes_count")
-        + yt_analyse.get("yt_total_likes_count")
-        + fb_analyse.get("fb_total_likes_count")
-        + tk_analyse.get("tk_total_likes_count")
+    analysis = schemas.CreateAnalyse(
+        post_id=post_id,
+        neutre=apc.get("neu", 0.0),
+        negatif=apc.get("neg", 0.0),
+        positif=apc.get("pos", 0.0),
+        compound=apc.get("compound", 0.0),
     )
 
-    shares = (
-        fb_analyse.get("fb_total_shares_count")
-        + tk_analyse.get("tk_total_shares_count")
-        + yt_analyse.get("yt_total_shares_count")
-    )
-
-    views = (
-        fb_analyse.get("fb_total_views_count")
-        + tk_analyse.get("tk_total_views_count")
-        + yt_analyse.get("yt_total_views_count")
-    )
-
-    comments = (
-        in_analyse.get("in_total_comments_count")
-        + fb_analyse.get("fb_total_comments_count")
-        + tk_analyse.get("tk_total_comments_count")
-        + yt_analyse.get("yt_total_comments_count")
-    )
-
-    sizes = [likes, shares, views, comments]
-
-    fig, ax = plt.subplots(subplot_kw=dict(aspect="equal"))
-    ax.pie(
-        sizes,
-        wedgeprops=dict(width=0.5, edgecolor="w"),
-        startangle=30,
-        explode=(0.1, 0, 0, 0.1),
-        labels=labels,
-        autopct="%1.1f%%",
-    )
-
-    # Enregistrer la figure dans un flux d'octets
-    img = io.BytesIO()
-    plt.savefig(img, format="png")
-    img.seek(0)
-
-    # Convertir les octets en base64
-    img_base64 = base64.b64encode(img.read()).decode("utf-8")
-    img_str = "data:image/png;base64,{0}".format(img_base64)
-
-    return {"fb_graphic_img": img_str}
+    bg.add_task(save_analysis, analysis)
 
 
-async def process_text_facebook(keyword: str):
-
-    text = await collect_keyword(keyword)
-    wordcloud = WordCloud(collocations=False, background_color="white", max_words=200, min_word_length=4)
-    process_text = wordcloud.process_text(text)
-    keywords = list(process_text.keys())
-    return {"fb_keywords": keywords}
-
-
-async def generate_cloud_tags_facebook(keyword: str) -> str:
-    wordcloud = WordCloud(collocations=False, background_color="white", max_words=300, min_word_length=4)
-    text = await collect_keyword(keyword)
-    generate_text = wordcloud.generate_from_text(text)
-    image_bytes = io.BytesIO()
-    generate_text.to_image().save(image_bytes, format="PNG")
-
-    cloudtags_image = "data:image/png;base64,{0}".format(base64.b64encode(image_bytes.getvalue()).decode("utf-8"))
-
-    return {"fb_cloudtag_img": cloudtags_image}
+class SortEnum(StrEnum):
+    ASC = "asc"
+    DESC = "desc"

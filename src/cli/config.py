@@ -4,6 +4,7 @@ import typer
 from fastapi.encoders import jsonable_encoder
 
 from src.cli import models
+from src.services.config import service as config_serv
 
 app = typer.Typer()
 
