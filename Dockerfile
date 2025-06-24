@@ -1,29 +1,70 @@
-FROM python:3.10-buster as builder
+FROM python:3.12.3-slim-bookworm as python-base
 
-RUN pip install poetry==1.4.2
+ENV PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=on \
+    PIP_DEFAULT_TIMEOUT=100 \
+    POETRY_VERSION=1.8.2 \
+    POETRY_HOME="/opt/poetry" \
+    POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_CREATE=false \
+    POETRY_CACHE_DIR=/tmp/poetry_cache \
+    VIRTUAL_ENV="/venv"
 
-ENV POETRY_NO_INTERACTION=1 \
-    POETRY_VIRTUALENVS_IN_PROJECT=1 \
-    POETRY_VIRTUALENVS_CREATE=1 \
-    POETRY_CACHE_DIR=/tmp/poetry_cache
+# prepend poetry and venv to path
+ENV PATH="$POETRY_HOME/bin:$VIRTUAL_ENV/bin:$PATH"
+
+# prepare virtual env
+RUN python -m venv $VIRTUAL_ENV
+
+# working directory and Python path
+WORKDIR /app
+ENV PYTHONPATH="/app:$PYTHONPATH"
+
+FROM python-base as builder-base
+
+RUN apt-get update && \
+    apt-get install -y \
+    apt-transport-https \
+    gnupg \
+    ca-certificates \
+    build-essential \
+    curl
+
+# install poetry - respects $POETRY_VERSION & $POETRY_HOME
+# The --mount will mount the buildx cache directory to where
+# Poetry and Pip store their cache so that they can re-use it
+RUN --mount=type=cache,target=/root/.cache \
+    curl -sSL https://install.python-poetry.org | python -
 
 WORKDIR /app
 
 COPY . .
 
-RUN poetry install --without dev && \
-    rm -rf $POETRY_CACHE_DIR
+# install runtime deps to VIRTUAL_ENV
+RUN --mount=type=cache,target=/root/.cache \
+    poetry install --no-root --without dev
 
-# L'image d'exécution utilisée pour exécuter le code dans son environnement virtuel.
-FROM python:3.10-slim-buster as runtime
 
-ENV VIRTUAL_ENV=/app/.venv \
-    PATH="/app/.venv/bin:$PATH"
+# The runtime image, used to just run the code provided its virtual environment
+FROM python-base as runtime
 
-# COPY Dockerfile et docker-compose.yaml
-COPY Dockerfile docker-compose.yaml /app/
+ARG UID=10001
+ARG GID=10001
 
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-COPY --from=builder /app/yimba_api /app/yimba_api
+COPY --from=builder-base ${POETRY_HOME} ${POETRY_HOME}
+COPY --from=builder-base ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=builder-base /app/src /app/src
+COPY --from=builder-base /app/appdesc.yml /app/appdesc.yml
+COPY --from=builder-base /app/pyproject.toml /app/pyproject.toml
+COPY --from=builder-base /app/poetry.lock /app/poetry.lock
+
+RUN addgroup --gid $GID appuser && \
+    adduser --uid $UID --gid $GID --disabled-password --gecos "" appuser && \
+    chmod 755 -R /app && \
+    chown appuser:appuser -R /app
+
+USER appuser
+
 
 WORKDIR /app
+ENV PYTHONPATH="/app:$PYTHONPATH"
